@@ -8,7 +8,7 @@ async function Navbar() {
   return (
     <nav className="flex h-16 items-center gap-4 border-b px-4 lg:gap-8">
       <Link className="text-lg font-medium" href="#">
-        Pomofocus
+        Pomotask
       </Link>
       <div className="ml-auto flex items-center gap-4">
         <div className="text-sm font-medium underline transition-colors hover:text-gray-900">
