@@ -12,7 +12,7 @@ async function Navbar() {
       </Link>
       <div className="ml-auto flex items-center gap-4">
         <div className="text-sm font-medium underline transition-colors hover:text-gray-900">
-          {userId ? <SignInButton /> : <SignOutButton />}
+          {userId ? <SignOutButton /> : <SignInButton />}
         </div>
       </div>
     </nav>
