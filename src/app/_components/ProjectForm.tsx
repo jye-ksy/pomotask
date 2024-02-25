@@ -3,8 +3,8 @@ import { useState } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { cn } from "../lib/utils";
-import { Button } from "./ui/button";
+import { cn } from "../../lib/utils";
+import { Button } from "../../components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,10 +13,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Input } from "./ui/input";
-import { Calendar } from "./ui/calendar";
+} from "../../components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { Input } from "../../components/ui/input";
+import { Calendar } from "../../components/ui/calendar";
 import { format } from "date-fns";
 
 const formSchema = z.object({
@@ -76,7 +76,6 @@ export default function ProjectForm() {
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
-                      variant={"outline"}
                       className={cn(
                         "w-full pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground",
