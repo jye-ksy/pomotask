@@ -22,7 +22,7 @@ model Task {
     updatedAt DateTime @updatedAt
     completed Boolean  @default(false)
     projects Project[]
-    userId Int
+    userId    String
     user User @relation(fields: [userId], references: [id]) 
     @@index([userId])
 }
@@ -32,18 +32,18 @@ model Project {
     name      String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-    completeTime DateTime
+    completeByDate DateTime
     completed Boolean  @default(false)
     tasksId   Int?
-    userId    Int?
+    userId    String
     tasks Task? @relation(fields: [tasksId], references: [id])
-    user User? @relation(fields: [userId], references: [id]) 
+    user User @relation(fields: [userId], references: [id]) 
     @@index([tasksId])
     @@index([userId])
 }
 
 model User {
-    id        Int      @id @default(autoincrement())
+    id        String @id 
     name      String
     email     String
     tasks     Task[]
