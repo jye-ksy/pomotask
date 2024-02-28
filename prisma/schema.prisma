@@ -15,39 +15,56 @@ datasource db {
 }
 
 model Task {
-    id        Int      @id @default(autoincrement())
+    id        Int        @id @default(autoincrement())
     name      String
-    priority  Priority @default(LOW)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    completed Boolean  @default(false)
-    projects Project[]
+    priority  Priority   @default(LOW)
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+    completed Boolean    @default(false)
+    projects  Project[]
     userId    String
-    user User @relation(fields: [userId], references: [id]) 
+    user      User       @relation(fields: [userId], references: [id])
+    Pomodoro  Pomodoro[]
+
     @@index([userId])
 }
 
+model Pomodoro {
+    id           String   @id @default(uuid())
+    createdAt    DateTime
+    updatedAt    DateTime
+    totalSeconds Int
+    startSeconds Int?
+    pauseSeconds Int?
+    isComplete   Boolean
+    task         Task     @relation(fields: [taskId], references: [id])
+    taskId       Int
+
+    @@index([taskId])
+}
+
 model Project {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id             Int      @id @default(autoincrement())
+    name           String
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
     completeByDate DateTime
-    completed Boolean  @default(false)
-    tasksId   Int?
-    userId    String
-    tasks Task? @relation(fields: [tasksId], references: [id])
-    user User @relation(fields: [userId], references: [id]) 
+    completed      Boolean  @default(false)
+    tasksId        Int?
+    userId         String
+    tasks          Task?    @relation(fields: [tasksId], references: [id])
+    user           User     @relation(fields: [userId], references: [id])
+
     @@index([tasksId])
     @@index([userId])
 }
 
 model User {
-    id        String @id 
-    name      String
-    email     String
-    tasks     Task[]
-    projects  Project[]
+    id       String    @id
+    name     String
+    email    String
+    tasks    Task[]
+    projects Project[]
 }
 
 enum Priority {
