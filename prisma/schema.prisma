@@ -14,11 +14,44 @@ datasource db {
     relationMode = "prisma"
 }
 
-model Post {
+model Task {
+    id        Int      @id @default(autoincrement())
+    name      String
+    priority  Priority @default(LOW)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    completed Boolean  @default(false)
+    projects Project[]
+    userId    String
+    user User @relation(fields: [userId], references: [id]) 
+    @@index([userId])
+}
+
+model Project {
     id        Int      @id @default(autoincrement())
     name      String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    completeByDate DateTime
+    completed Boolean  @default(false)
+    tasksId   Int?
+    userId    String
+    tasks Task? @relation(fields: [tasksId], references: [id])
+    user User @relation(fields: [userId], references: [id]) 
+    @@index([tasksId])
+    @@index([userId])
+}
 
-    @@index([name])
+model User {
+    id        String @id 
+    name      String
+    email     String
+    tasks     Task[]
+    projects  Project[]
+}
+
+enum Priority {
+    LOW
+    MEDIUM
+    HIGH
 }

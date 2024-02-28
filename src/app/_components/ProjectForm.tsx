@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,10 +13,15 @@ import {
   FormLabel,
   FormMessage,
 } from "../../components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/ui/popover";
 import { Input } from "../../components/ui/input";
 import { Calendar } from "../../components/ui/calendar";
 import { format } from "date-fns";
+import { api } from "~/trpc/react";
 
 const formSchema = z.object({
   name: z.string().min(2).max(250, {
@@ -27,7 +31,7 @@ const formSchema = z.object({
 });
 
 export default function ProjectForm() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const createProject = api.project.create.useMutation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,10 +40,15 @@ export default function ProjectForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values);
+    createProject.mutate({
+      name: values.name,
+      date: values.date,
+      userId: "s13s",
+    });
   }
   return (
     <Form {...form}>
