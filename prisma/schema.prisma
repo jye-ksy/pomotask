@@ -30,14 +30,14 @@ model Task {
 }
 
 model Pomodoro {
-    id           String   @id @default(uuid())
-    createdAt    DateTime
-    updatedAt    DateTime
+    id           String    @id @default(uuid())
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime?
     totalSeconds Int
     startSeconds Int?
     pauseSeconds Int?
     isComplete   Boolean
-    task         Task     @relation(fields: [taskId], references: [id])
+    task         Task      @relation(fields: [taskId], references: [id])
     taskId       Int
 
     @@index([taskId])
