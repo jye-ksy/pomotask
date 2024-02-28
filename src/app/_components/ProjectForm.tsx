@@ -1,3 +1,4 @@
+
 "use client";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
@@ -22,6 +23,7 @@ import { Input } from "../../components/ui/input";
 import { Calendar } from "../../components/ui/calendar";
 import { format } from "date-fns";
 import { api } from "~/trpc/react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(2).max(250, {
@@ -31,8 +33,9 @@ const formSchema = z.object({
 });
 
 export default function ProjectForm() {
-  const createProject = api.project.create.useMutation();
 
+
+  const createProject = api.project.create.useMutation();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,7 +51,16 @@ export default function ProjectForm() {
       name: values.name,
       date: values.date,
       userId: "s13s",
+    }, {
+      onSuccess: (data) => {
+        toast("Success! Project has been created!")
+        form.reset();
+      }, 
+      onError: (error) => {
+        console.log(error)
+      }
     });
+
   }
   return (
     <Form {...form}>
