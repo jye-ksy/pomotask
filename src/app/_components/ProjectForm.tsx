@@ -40,6 +40,7 @@ export default function ProjectForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      date: undefined
     },
   });
 
@@ -48,9 +49,7 @@ export default function ProjectForm() {
     // ✅ This will be type-safe and validated.
     console.log(values);
     createProject.mutate({
-      name: values.name,
-      date: values.date,
-      userId: "s13s",
+      ...values
     }, {
       onSuccess: (data) => {
         toast("Success! Project has been created!")

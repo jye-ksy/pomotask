@@ -15,7 +15,7 @@ datasource db {
 }
 
 model Task {
-    id        Int        @id @default(autoincrement())
+    id        String     @id @default(uuid())
     name      String
     priority  Priority   @default(LOW)
     createdAt DateTime   @default(now())
@@ -38,19 +38,19 @@ model Pomodoro {
     pauseSeconds Int?
     isComplete   Boolean
     task         Task      @relation(fields: [taskId], references: [id])
-    taskId       Int
+    taskId       String
 
     @@index([taskId])
 }
 
 model Project {
-    id             Int      @id @default(autoincrement())
+    id             String   @id @default(uuid())
     name           String
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
     completeByDate DateTime
     completed      Boolean  @default(false)
-    tasksId        Int?
+    tasksId        String?
     userId         String
     tasks          Task?    @relation(fields: [tasksId], references: [id])
     user           User     @relation(fields: [userId], references: [id])
@@ -60,7 +60,7 @@ model Project {
 }
 
 model User {
-    id       String    @id
+    id       String    @id @default(uuid())
     name     String
     email    String
     tasks    Task[]
