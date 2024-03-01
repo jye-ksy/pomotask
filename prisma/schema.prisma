@@ -15,31 +15,34 @@ datasource db {
 }
 
 model Task {
-    id        String     @id @default(uuid())
+    id        String    @id @default(uuid())
     name      String
-    priority  Priority   @default(LOW)
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
-    completed Boolean    @default(false)
+    priority  Priority  @default(LOW)
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    completed Boolean   @default(false)
     projects  Project[]
     userId    String
-    user      User       @relation(fields: [userId], references: [id])
-    Pomodoro  Pomodoro[]
+    user      User      @relation(fields: [userId], references: [id])
+    Pomodoro  Pomodoro?
 
     @@index([userId])
 }
 
 model Pomodoro {
-    id               String    @id @default(uuid())
-    createdAt        DateTime  @default(now())
-    updatedAt        DateTime?
-    focusLength      Int
-    restLength       Int
-    currentFocusTime Int?
-    currentRestTime  Int?
-    isComplete       Boolean
-    task             Task      @relation(fields: [taskId], references: [id])
-    taskId           String
+    id                 String    @id @default(uuid())
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime?
+    focusLength        Int
+    restLength         Int
+    currentFocusTime   Int
+    currentRestTime    Int
+    isResting          Boolean   @default(false)
+    totalFocusTime     Int       @default(0)
+    totalRestTime      Int       @default(0)
+    pomodorosCompleted Int       @default(0)
+    task               Task      @relation(fields: [taskId], references: [id])
+    taskId             String    @unique
 
     @@index([taskId])
 }
