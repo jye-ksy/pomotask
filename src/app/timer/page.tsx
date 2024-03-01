@@ -1,7 +1,5 @@
 import { api } from "~/trpc/server";
 import Timer from "../_components/Timer";
-// To-do:
-// - hook it up properly to api
 
 export default async function Pomodoro() {
   let pomodoro = await api.pomodoro.getPomodoro.query({

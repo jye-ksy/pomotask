@@ -1,10 +1,3 @@
-// To-do:
-// - Make Pomodoro router
-// - Hook timer to backend
-//   - need to create a random task since its linked to a task
-//   - try doing client/server action combo
-// - Check if page refresh works
-
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { z } from "zod";
 
