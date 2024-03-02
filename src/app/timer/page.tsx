@@ -9,8 +9,8 @@ export default async function Pomodoro() {
   if (!pomodoro) {
     pomodoro = await api.pomodoro.createPomodoro.mutate({
       taskId: "d80fdc0b-02fe-4aae-97eb-89307b3a4be0", // To-do: Replace the hardcoded taskId by getting the id from the url
-      focusLength: 60 * 25,
-      restLength: 60 * 5,
+      focusLength: 10,
+      restLength: 5,
     });
   }
 
