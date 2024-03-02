@@ -50,8 +50,19 @@ export default function Timer({
     api.pomodoro.completePomodoro.useMutation().mutate;
   const completeBreakTimeMutation =
     api.pomodoro.completeBreakTime.useMutation().mutate;
+  const updateTimeStateMutation =
+    api.pomodoro.updateTimerState.useMutation().mutate;
 
   useEffect(() => {
+    // Update state on page exit/refresh
+    const handleBeforeUnload = (e: Event) => {
+      e.preventDefault(); // prompt before reload
+      void updateTimerStateAction({ taskId, focusTime, restTime });
+    };
+
+    // Event listener that fires after page exit/refresh
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     let interval: NodeJS.Timeout | undefined;
 
     if (isActive && (focusTime >= 0 || restTime >= 0)) {
@@ -95,17 +106,25 @@ export default function Timer({
     }
 
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       clearInterval(interval);
     };
   }, [
     focusTime,
     restTime,
+    setRestTime,
+    setFocusTime,
+    isActive,
+    setIsActive,
+    setIsResting,
     initialFocusTime,
     initialRestTime,
     isResting,
-    isActive,
+    updateTimeStateMutation,
     completePomodoroMutation,
-  ]); // To do: fix dependency array warning
+    completeBreakTimeMutation,
+    taskId,
+  ]);
 
   const handleStartPauseClick = () => {
     setIsActive(!isActive);
