@@ -8,7 +8,7 @@ export default async function Home() {
  
   return (
     <main className="min-h-screen ">
-      <section className="container"></section>
+      <section className="container py-16"></section>
     </main>
   );
 }

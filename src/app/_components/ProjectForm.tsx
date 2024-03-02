@@ -23,7 +23,7 @@ import { Input } from "../../components/ui/input";
 import { Calendar } from "../../components/ui/calendar";
 import { format } from "date-fns";
 import { api } from "~/trpc/react";
-import { toast } from "sonner";
+import { useToast } from "../../components/ui/use-toast"
 
 const formSchema = z.object({
   name: z.string().min(2).max(250, {
@@ -34,7 +34,7 @@ const formSchema = z.object({
 
 export default function ProjectForm() {
 
-
+  const { toast } = useToast();
   const createProject = api.project.create.useMutation();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,11 +52,19 @@ export default function ProjectForm() {
       ...values
     }, {
       onSuccess: (data) => {
-        toast("Success! Project has been created!")
+        console.log(data);
+        toast({ 
+          title: "Success!",
+          description: `Project: "${data.name}" has been created!`
+      })
         form.reset();
       }, 
       onError: (error) => {
         console.log(error)
+        toast({ 
+          title: "Error!",
+          description: "Something went wrong with creating the project"
+      })
       }
     });
 
@@ -65,7 +73,7 @@ export default function ProjectForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        className="mx-auto flex flex-col gap-4 w-full md:max-w-[600px]"
       >
         <FormField
           control={form.control}
