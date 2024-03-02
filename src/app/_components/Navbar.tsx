@@ -13,6 +13,9 @@ export async function Navbar() {
           <div className="text-sm font-medium transition-colors ">
             {userId ? 
             <div className="flex items-center gap-4">
+              <Link className="hover:text-gray-400" href="/dashboard">
+                Dashboard
+              </Link>
               <Link className="hover:text-gray-400" href="/create/project">
                 New Project
               </Link>
