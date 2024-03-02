@@ -50,8 +50,6 @@ export default function Timer({
     api.pomodoro.completePomodoro.useMutation().mutate;
   const completeBreakTimeMutation =
     api.pomodoro.completeBreakTime.useMutation().mutate;
-  const updateTimeStateMutation =
-    api.pomodoro.updateTimerState.useMutation().mutate;
 
   useEffect(() => {
     // Update state on page exit/refresh
@@ -120,7 +118,6 @@ export default function Timer({
     initialFocusTime,
     initialRestTime,
     isResting,
-    updateTimeStateMutation,
     completePomodoroMutation,
     completeBreakTimeMutation,
     taskId,
