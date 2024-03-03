@@ -6,11 +6,14 @@ import {
   PauseIcon,
   RotateCcwIcon,
   AlarmClockCheckIcon,
+  SettingsIcon,
 } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 import { updateTimerStateAction } from "~/app/timer/action";
 import { api } from "~/trpc/react";
+import { Card } from "~/components/ui/card";
+import { Progress } from "~/components/ui/progress";
 
 type TimerProps = {
   id: string;
@@ -46,6 +49,7 @@ export default function Timer({
   const [isResting, setIsResting] = useState(isBreakTime);
   const [focusTime, setFocusTime] = useState(currentFocusTime);
   const [restTime, setRestTime] = useState(currentRestTime);
+  const [progress, setProgress] = useState(0);
   const completePomodoroMutation =
     api.pomodoro.completePomodoro.useMutation().mutate;
   const completeBreakTimeMutation =
@@ -71,6 +75,7 @@ export default function Timer({
             if (prevRestTime === 0) {
               setIsResting(false);
               setIsActive(false);
+              setProgress(0);
               completeBreakTimeMutation({
                 taskId,
                 initialRestTime,
@@ -80,13 +85,14 @@ export default function Timer({
             }
             return prevRestTime - 1;
           });
+          setProgress(((initialRestTime - restTime) / initialRestTime) * 100);
         } else {
           // Decrement focus timer by 1 second
           setFocusTime((prevFocusTime) => {
             if (prevFocusTime === 0) {
               setIsResting(true);
               setIsActive(false);
-
+              setProgress(0);
               completePomodoroMutation({
                 taskId,
                 initialFocusTime,
@@ -96,6 +102,9 @@ export default function Timer({
             }
             return prevFocusTime - 1;
           });
+          setProgress(
+            ((initialFocusTime - focusTime) / initialFocusTime) * 100,
+          );
         }
       }, 1000);
     } else {
@@ -121,6 +130,7 @@ export default function Timer({
     completePomodoroMutation,
     completeBreakTimeMutation,
     taskId,
+    progress,
   ]);
 
   const handleStartPauseClick = () => {
@@ -134,6 +144,7 @@ export default function Timer({
 
   const handleEndClick = () => {
     setIsActive(false);
+    setProgress(0);
     if (isResting) {
       setRestTime(initialRestTime);
       setIsResting(false);
@@ -154,40 +165,52 @@ export default function Timer({
   };
 
   return (
-    <div className="mt-20 flex h-96 justify-center">
-      <div className="flex-col">
-        <div className="flex  justify-center  text-4xl font-bold">
-          {isResting ? "Break Time" : "Focus Time"}
+    <div className="w-1/5 min-w-96 flex-col">
+      <Card className="pb-10">
+        <div className="flex-col">
+          <div className="flex justify-end">
+            <div className="pr-2 pt-2">
+              <Button variant="ghost" size="icon">
+                <SettingsIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <div className="flex  justify-center  text-4xl font-bold">
+            {isResting ? "Break Time" : "Focus Time"}
+          </div>
+          <div className="mt-8 flex justify-center  pb-4 text-9xl  font-bold">
+            {isResting ? formatTime(restTime) : formatTime(focusTime)}
+          </div>
+          <div className="mx-12 mt-8 flex  justify-around text-7xl font-medium">
+            <Button
+              onClick={() => {
+                handleStartPauseClick();
+                void updateTimerStateAction({ taskId, focusTime, restTime });
+              }}
+            >
+              {isActive ? (
+                <PauseIcon className="mr-2 h-4 w-4" />
+              ) : (
+                <PlayIcon className="mr-2 h-4 w-4" />
+              )}
+              {isActive ? "Pause" : "Start"}
+            </Button>
+            <Button variant="secondary" onClick={handleResetClick}>
+              <RotateCcwIcon className="mr-2 h-4 w-4" />
+              Reset
+            </Button>
+            <Button variant="ghost" onClick={handleEndClick}>
+              <AlarmClockCheckIcon className="mr-2 h-4 w-4" />
+              End
+            </Button>
+          </div>
         </div>
-        <div className=" mt-8 flex justify-center  pb-4 text-9xl  font-bold">
-          {isResting ? formatTime(restTime) : formatTime(focusTime)}
-        </div>
-        <div className="mt-8 flex justify-around  text-7xl font-medium">
-          <Button
-            onClick={() => {
-              handleStartPauseClick();
-              void updateTimerStateAction({ taskId, focusTime, restTime });
-            }}
-          >
-            {isActive ? (
-              <PauseIcon className="mr-2 h-4 w-4" />
-            ) : (
-              <PlayIcon className="mr-2 h-4 w-4" />
-            )}
-            {isActive ? "Pause" : "Start"}
-          </Button>
-
-          <Button variant="secondary" onClick={handleResetClick}>
-            <RotateCcwIcon className="mr-2 h-4 w-4" />
-            Reset
-          </Button>
-
-          <Button variant="ghost" onClick={handleEndClick}>
-            <AlarmClockCheckIcon className="mr-2 h-4 w-4" />
-            End
-          </Button>
-        </div>
-      </div>
+      </Card>
+      <Progress
+        value={progress}
+        max={isResting ? initialRestTime : initialFocusTime}
+        className="mt-2 w-[100%]"
+      />
     </div>
   );
 }
