@@ -1,6 +1,5 @@
 import { api } from "~/trpc/server";
-import Timer from "../_components/Timer";
-import { ProgressBar } from "../_components/ProgressBar";
+import Timer from "./_components/Timer";
 
 export default async function Pomodoro() {
   let pomodoro = await api.pomodoro.getPomodoro.query({
