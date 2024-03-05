@@ -2,77 +2,97 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["driverAdapters"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 
-    // Do not use foreign keys (PlanetScale does not support them)
-    relationMode = "prisma"
+  // Do not use foreign keys (PlanetScale does not support them)
+  relationMode = "prisma"
 }
 
 model Task {
-    id        String    @id @default(uuid())
-    name      String
-    priority  Priority  @default(LOW)
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    completed Boolean   @default(false)
-    projects  Project[]
-    userId    String
-    user      User      @relation(fields: [userId], references: [id])
-    Pomodoro  Pomodoro?
+  id         String    @id @default(uuid())
+  name       String
+  priority   Priority  @default(LOW)
+  createdAt  DateTime  @default(now())
+  due        DateTime
+  updatedAt  DateTime  @updatedAt
+  status     Status    @default(NOT_STARTED)
+  completed  Boolean   @default(false)
+  notes      String?
+  projects   Project[]
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  Pomodoro   Pomodoro?
 
-    @@index([userId])
+  @@index([userId])
+}
+
+model SubTask {
+  id        String   @id @default(uuid())
+  name      String
+  priority  Priority @default(LOW)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  completed Boolean  @default(false)
+  notes     String
+  status    Status   @default(NOT_STARTED)
 }
 
 model Pomodoro {
-    id                 String    @id @default(uuid())
-    createdAt          DateTime  @default(now())
-    updatedAt          DateTime?
-    focusLength        Int
-    restLength         Int
-    currentFocusTime   Int
-    currentRestTime    Int
-    isResting          Boolean   @default(false)
-    totalFocusTime     Int       @default(0)
-    totalRestTime      Int       @default(0)
-    pomodorosCompleted Int       @default(0)
-    task               Task      @relation(fields: [taskId], references: [id])
-    taskId             String    @unique
+  id                 String    @id @default(uuid())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime?
+  focusLength        Int
+  restLength         Int
+  currentFocusTime   Int
+  currentRestTime    Int
+  isResting          Boolean   @default(false)
+  totalFocusTime     Int       @default(0)
+  totalRestTime      Int       @default(0)
+  pomodorosCompleted Int       @default(0)
+  task               Task      @relation(fields: [taskId], references: [id])
+  taskId             String    @unique
 
-    @@index([taskId])
+  @@index([taskId])
 }
 
 model Project {
-    id             String   @id @default(uuid())
-    name           String
-    createdAt      DateTime @default(now())
-    updatedAt      DateTime @updatedAt
-    completeByDate DateTime
-    completed      Boolean  @default(false)
-    tasksId        String?
-    userId         String
-    tasks          Task?    @relation(fields: [tasksId], references: [id])
-    user           User     @relation(fields: [userId], references: [id])
+  id             String   @id @default(uuid())
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  completeByDate DateTime
+  completed      Boolean  @default(false)
+  tasksId        String?
+  userId         String
+  tasks          Task?    @relation(fields: [tasksId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
 
-    @@index([tasksId])
-    @@index([userId])
+  @@index([tasksId])
+  @@index([userId])
 }
 
 model User {
-    id       String    @id @default(uuid())
-    name     String
-    email    String
-    tasks    Task[]
-    projects Project[]
+  id       String    @id @default(uuid())
+  name     String
+  email    String
+  tasks    Task[]
+  projects Project[]
 }
 
 enum Priority {
-    LOW
-    MEDIUM
-    HIGH
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum Status {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
 }

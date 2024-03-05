@@ -14,12 +14,12 @@ export const projectRouter = createTRPCRouter({
         date: z.date(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input: {name, date} }) => {
 
       return ctx.db.project.create({
         data: {
-          name: input.name,
-          completeByDate: input.date,
+          name, 
+          completeByDate: date,
           userId: ctx.userId
         },
       });
@@ -34,17 +34,18 @@ export const projectRouter = createTRPCRouter({
       })
     }),
 
-getProjectById: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(), // Correct, since `id` is a string in your Prisma schema
+  getProjectById: protectedProcedure
+      .input(
+        z.object({
+          id: z.string(), // Correct, since `id` is a string in your Prisma schema
+        }),
+      )
+      .query(async ({ ctx, input }) => {
+        return ctx.db.project.findUnique({
+          where: {
+            id: input.id,
+          },
+        });
       }),
-    )
-    .query(async ({ ctx, input }) => {
-      return ctx.db.project.findUnique({
-        where: {
-          id: input.id,
-        },
-      });
-    }),
+
 });
