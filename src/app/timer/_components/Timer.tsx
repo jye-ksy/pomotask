@@ -61,7 +61,7 @@ export default function Timer({
 
   // Start / Stop the timer
   useEffect(() => {
-    // Update state on page exit/refresh
+    // Send the current state to db upon premature page exit/refresh
     const handleBeforeUnload = () => {
       // e.preventDefault(); // prompt before reload
       void updateTimerStateAction({ taskId, focusTime, restTime });
@@ -74,9 +74,9 @@ export default function Timer({
 
     if (isActive && (focusTime >= 0 || restTime >= 0)) {
       interval = setInterval(() => {
-        // Decrement rest timer by 1 second
         if (isResting) {
           setRestTime((prevRestTime) => {
+            // Reset state and update db when timer hits 0
             if (prevRestTime === 0) {
               setIsResting(false);
               setIsActive(false);
@@ -88,12 +88,13 @@ export default function Timer({
               });
               return initialRestTime;
             }
+            // Decrement rest timer by 1 second
             return prevRestTime - 1;
           });
           setProgress(((initialRestTime - restTime) / initialRestTime) * 100);
         } else {
-          // Decrement focus timer by 1 second
           setFocusTime((prevFocusTime) => {
+            // Reset state and update db when timer hits 0
             if (prevFocusTime === 0) {
               setIsResting(true);
               setIsActive(false);
@@ -105,6 +106,7 @@ export default function Timer({
               });
               return initialFocusTime;
             }
+            // Decrement focus timer by 1
             return prevFocusTime - 1;
           });
           // Update the progress bar
@@ -150,7 +152,8 @@ export default function Timer({
 
   const handleEndClick = () => {
     setIsActive(false);
-    setProgress(0);
+    setProgress(0); // Reset progress bar
+
     // Update the total time spent focusing or resting
     if (isResting) {
       setRestTime(initialRestTime);
@@ -198,7 +201,7 @@ export default function Timer({
             <Button
               onClick={() => {
                 handleStartPauseClick();
-                void updateTimerStateAction({ taskId, focusTime, restTime });
+                void updateTimerStateAction({ taskId, focusTime, restTime }); // Update db on start/pause
               }}
             >
               {isActive ? (

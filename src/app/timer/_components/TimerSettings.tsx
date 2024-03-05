@@ -69,6 +69,7 @@ export default function TimerSettings({
   const updateTimerLengthMutation =
     api.pomodoro.updateTimerLength.useMutation().mutate;
 
+  // Submit handler
   const handleTimerSettingsSubmit = (
     data: z.infer<typeof timerSettingsSchema>,
   ) => {
@@ -93,7 +94,7 @@ export default function TimerSettings({
     });
   };
 
-  // Function to handle value changes
+  // Slider change handlers
   const handlePomodoroSliderChange = (newValue: number[]) => {
     const value = newValue[0];
     if (value) {
@@ -109,21 +110,22 @@ export default function TimerSettings({
     }
   };
 
+  // Input change handlers
   const handlePomodoroMinutesChange: React.ChangeEventHandler<
     HTMLInputElement
   > = (e) => {
     const value = (e.target as HTMLInputElement).value;
+    // Only allow user to input a max of 2 characters
     if (value.length <= 2) {
       setPomodoroMinutes(parseInt(value));
       timerSettingsForm.setValue("pomodoro", parseInt(value));
     }
   };
-
   const handleBreakMinutesChange: React.ChangeEventHandler<HTMLInputElement> = (
     e,
   ) => {
     const value = (e.target as HTMLInputElement).value;
-
+    // Only allow user to input a max of 2 characters
     if (value.length <= 2) {
       setBreakMinutes(parseInt(value));
       timerSettingsForm.setValue("break", parseInt(value));
