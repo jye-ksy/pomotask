@@ -10,10 +10,11 @@ import { useSidebarContext } from "~/lib/useSidebarContext";
 export default function Dashboard() {
 
     const projects = api.project.getAllProjects.useQuery()
+    const tasks = api.task.getAllUserTasks.useQuery();
     const {toggleSideBar} = useSidebarContext();
 
-    if (projects.isLoading) return <div>Loading...</div>
-
+    if (projects.isLoading && tasks.isLoading) return <div>Loading...</div>
+    console.log(tasks)
     return (
         <div className="container py-16 relative">
             <h1 className="font-bold text-xl mb-8">My Projects</h1>
@@ -23,6 +24,12 @@ export default function Dashboard() {
                 })}
                 <NewProjectCard/>
                 <Button variant="outline" onClick={toggleSideBar}>Add Task</Button>                    
+            </div>
+            <h1 className="font-bold text-xl mt-16 mb-8">My Tasks</h1>
+            <div className="container w-full flex flex-col gap-8 md:flex-row md:gap-8 md:flex-wrap">
+                {tasks.data?.map((task) => {
+                   return <ProjectCard key={task.id} name={task.name} projectId={task.id.toString()} /> 
+                })}                 
             </div>
         </div>
     );

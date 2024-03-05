@@ -65,7 +65,7 @@ export default function NewTaskForm() {
     const { toast } = useToast();
     const projects = api.project.getAllProjects.useQuery();
 
-
+    
 
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -265,14 +265,13 @@ export default function NewTaskForm() {
                                                     setOpen(false)
                                                 }}
                                             >
-                                            {project.name}
-                                            <CheckIcon
-                                            className={cn(
-                                                "ml-auto h-4 w-4",
-                                                value === project.name ? "opacity-100" : "opacity-0"
-                                            )}
-                                            />
-
+                                                {project.name}
+                                                <CheckIcon
+                                                className={cn(
+                                                    "ml-auto h-4 w-4",
+                                                    value === project.name ? "opacity-100" : "opacity-0"
+                                                )}
+                                                />
                                             </CommandItem>
                                         ))}
                                     </CommandGroup>
