@@ -16,6 +16,7 @@ import { Progress } from "~/components/ui/progress";
 import { SECONDS_IN_MINUTE } from "~/lib/constants";
 import { secondsToMinutes } from "~/lib/utils";
 import TimerSettings from "./TimerSettings";
+import TimerTabs from "./TimerTabs";
 
 type TimerProps = {
   id: string;
@@ -64,7 +65,7 @@ export default function Timer({
     // Send the current state to db upon premature page exit/refresh
     const handleBeforeUnload = () => {
       // e.preventDefault(); // prompt before reload
-      void updateTimerStateAction({ taskId, focusTime, restTime });
+      void updateTimerStateAction({ taskId, focusTime, restTime, isResting });
     };
 
     // Event listener that fires after page exit/refresh
@@ -143,6 +144,7 @@ export default function Timer({
 
   const handleStartPauseClick = () => {
     setIsActive(!isActive);
+    void updateTimerStateAction({ taskId, focusTime, restTime, isResting }); // Update db on start/pause
   };
 
   const handleResetClick = () => {
@@ -176,6 +178,17 @@ export default function Timer({
 
   return (
     <div className="w-1/5 min-w-96 flex-col">
+      <TimerTabs
+        taskId={taskId}
+        isResting={isResting}
+        focusTime={focusTime}
+        restTime={restTime}
+        initialFocusTime={initialFocusTime}
+        initialRestTime={initialRestTime}
+        setIsResting={setIsResting}
+        setIsActive={setIsActive}
+        setProgress={setProgress}
+      />
       <Card className="pb-10">
         <div className="flex-col">
           <div className="flex justify-end">
@@ -191,9 +204,6 @@ export default function Timer({
               />
             </div>
           </div>
-          <div className="flex  justify-center  text-4xl font-bold">
-            {isResting ? "Break Time" : "Focus Time"}
-          </div>
           <div className="mt-8 flex justify-center  pb-4 text-9xl  font-bold">
             {isResting ? formatTime(restTime) : formatTime(focusTime)}
           </div>
@@ -201,7 +211,6 @@ export default function Timer({
             <Button
               onClick={() => {
                 handleStartPauseClick();
-                void updateTimerStateAction({ taskId, focusTime, restTime }); // Update db on start/pause
               }}
             >
               {isActive ? (
@@ -224,6 +233,7 @@ export default function Timer({
       </Card>
       <Progress
         value={progress}
+        defaultValue={progress}
         max={isResting ? initialRestTime : initialFocusTime}
         className="mt-1 w-[100%]"
       />
