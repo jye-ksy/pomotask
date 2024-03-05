@@ -113,4 +113,40 @@ export const pomodoroRouter = createTRPCRouter({
         return pomodoro;
       },
     ),
+  updateTimerLength: protectedProcedure
+    .input(
+      z.object({
+        taskId: z.string(),
+        focusLength: z.number(),
+        restLength: z.number(),
+        currentFocusTime: z.number(),
+        currentRestTime: z.number(),
+      }),
+    )
+    .mutation(
+      async ({
+        ctx,
+        input: {
+          taskId,
+          focusLength,
+          restLength,
+          currentFocusTime,
+          currentRestTime,
+        },
+      }) => {
+        const pomodoro = await ctx.db.pomodoro.update({
+          where: {
+            taskId,
+          },
+          data: {
+            focusLength,
+            restLength,
+            currentFocusTime,
+            currentRestTime,
+          },
+        });
+
+        return pomodoro;
+      },
+    ),
 });
