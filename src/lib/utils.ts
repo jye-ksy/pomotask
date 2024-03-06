@@ -13,3 +13,12 @@ export function minutesToSeconds(minutes: number) {
 export function secondsToMinutes(seconds: number) {
   return seconds / SECONDS_IN_MINUTE;
 }
+
+export function formatTime(seconds: number) {
+  return `${Math.floor(secondsToMinutes(seconds))
+    .toString()
+    .padStart(
+      2,
+      "0",
+    )}:${(seconds % SECONDS_IN_MINUTE).toString().padStart(2, "0")}`;
+}

@@ -1,5 +1,6 @@
 import { api } from "~/trpc/server";
 import Timer from "./_components/Timer";
+import TimerStats from "./_components/TimerStats";
 
 export default async function Pomodoro() {
   let pomodoro = await api.pomodoro.getPomodoro.query({
@@ -15,19 +16,27 @@ export default async function Pomodoro() {
   }
 
   return (
-    <div className="mt-20 flex h-96 justify-center">
-      <Timer
-        id={pomodoro.id}
-        taskId={pomodoro.taskId}
-        focusLength={pomodoro.focusLength}
-        restLength={pomodoro.restLength}
-        currentFocusTime={pomodoro.currentFocusTime}
-        currentRestTime={pomodoro.currentRestTime}
-        pomodorosCompleted={pomodoro.pomodorosCompleted}
-        totalFocusTime={pomodoro.totalFocusTime}
-        totalRestTime={pomodoro.totalRestTime}
-        isBreakTime={pomodoro.isResting}
-      />
+    <div className="w-full flex-col">
+      <div className="mx-4 mb-48 mt-20 flex h-96 justify-center">
+        <Timer
+          id={pomodoro.id}
+          taskId={pomodoro.taskId}
+          focusLength={pomodoro.focusLength}
+          restLength={pomodoro.restLength}
+          currentFocusTime={pomodoro.currentFocusTime}
+          currentRestTime={pomodoro.currentRestTime}
+          pomodorosCompleted={pomodoro.pomodorosCompleted}
+          totalFocusTime={pomodoro.totalFocusTime}
+          totalRestTime={pomodoro.totalRestTime}
+          isBreakTime={pomodoro.isResting}
+        />
+      </div>
+      <div className="mx-4 flex justify-center">
+        <TimerStats
+          pomodorosCompleted={pomodoro.pomodorosCompleted}
+          totalFocusTime={pomodoro.totalFocusTime}
+        />
+      </div>
     </div>
   );
 }

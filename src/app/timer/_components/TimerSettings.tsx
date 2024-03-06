@@ -139,17 +139,13 @@ export default function TimerSettings({
           <SettingsIcon className="h-4 w-4 text-gray-500" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-72">
         <Form {...timerSettingsForm}>
           <form
             onSubmit={timerSettingsForm.handleSubmit(handleTimerSettingsSubmit)}
           >
             <DialogHeader className="mb-8">
-              <DialogTitle>Settings</DialogTitle>
-              <DialogDescription>
-                Make changes to the timer here. Click save when you&apos;re
-                done.
-              </DialogDescription>
+              <DialogTitle className="flex">Settings</DialogTitle>
             </DialogHeader>
             <Label className="mb-6 flex">
               <AlarmClockIcon className="mb-2 mr-2 h-4 w-4 text-muted-foreground" />
