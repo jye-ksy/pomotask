@@ -13,8 +13,7 @@ import { updateTimerStateAction } from "~/app/timer/action";
 import { api } from "~/trpc/react";
 import { Card } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
-import { SECONDS_IN_MINUTE } from "~/lib/constants";
-import { secondsToMinutes } from "~/lib/utils";
+import { formatTime } from "~/lib/utils";
 import TimerSettings from "./TimerSettings";
 import TimerTabs from "./TimerTabs";
 
@@ -177,7 +176,7 @@ export default function Timer({
   };
 
   return (
-    <div className="w-1/5 min-w-96 flex-col">
+    <div className="md:w-128 w-96 flex-col">
       <TimerTabs
         taskId={taskId}
         isResting={isResting}
@@ -190,8 +189,8 @@ export default function Timer({
         setProgress={setProgress}
       />
       <Card className="pb-10">
-        <div className="flex-col">
-          <div className="flex justify-end">
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex justify-end self-end">
             <div className="pr-2 pt-2">
               <TimerSettings
                 taskId={taskId}
@@ -204,28 +203,37 @@ export default function Timer({
               />
             </div>
           </div>
-          <div className="mt-8 flex justify-center  pb-4 text-9xl  font-bold">
+          <div className="mt-8 flex justify-center pb-4 text-7xl font-bold md:text-9xl">
             {isResting ? formatTime(restTime) : formatTime(focusTime)}
           </div>
-          <div className="mx-12 mt-8 flex  justify-around text-7xl font-medium">
+          <div className="mt-8 flex w-60 justify-around text-sm font-medium md:mx-12 md:w-96 md:justify-around md:px-2 md:text-7xl">
             <Button
               onClick={() => {
                 handleStartPauseClick();
               }}
+              className="w-16 md:w-24"
             >
               {isActive ? (
-                <PauseIcon className="mr-2 h-4 w-4" />
+                <PauseIcon className="invisible h-4 w-4 md:visible md:mr-2" />
               ) : (
-                <PlayIcon className="mr-2 h-4 w-4" />
+                <PlayIcon className="invisible h-4 w-4 md:visible md:mr-2" />
               )}
               {isActive ? "Pause" : "Start"}
             </Button>
-            <Button variant="secondary" onClick={handleResetClick}>
-              <RotateCcwIcon className="mr-2 h-4 w-4" />
+            <Button
+              variant="secondary"
+              onClick={handleResetClick}
+              className="w-16 md:w-24"
+            >
+              <RotateCcwIcon className="invisible h-4 w-4 md:visible md:mr-2" />
               Reset
             </Button>
-            <Button variant="ghost" onClick={handleEndClick}>
-              <AlarmClockCheckIcon className="mr-2 h-4 w-4" />
+            <Button
+              variant="ghost"
+              onClick={handleEndClick}
+              className="w-16 md:w-24"
+            >
+              <AlarmClockCheckIcon className="invisible h-4 w-4 md:visible md:mr-2" />
               End
             </Button>
           </div>
@@ -239,13 +247,4 @@ export default function Timer({
       />
     </div>
   );
-}
-
-function formatTime(seconds: number) {
-  return `${Math.floor(secondsToMinutes(seconds))
-    .toString()
-    .padStart(
-      2,
-      "0",
-    )}:${(seconds % SECONDS_IN_MINUTE).toString().padStart(2, "0")}`;
 }
