@@ -65,13 +65,28 @@ export async function POST(req: Request) {
     const email = email_addresses[0]!.email_address;
 
     //Call prisma to create a new user 
-    await db.user.create({
-        data: {
-            id,
-            name: first_name + " " + last_name,
-            email
-        }
-     })
+    // await db.user.create({
+    //     data: {
+    //         id,
+    //         name: first_name + " " + last_name,
+    //         email
+    //     }
+    //  })
+
+    await db.user.upsert({
+      where: {
+        id
+      },
+      update: {
+        name: first_name + " " + last_name,
+        email
+      },
+      create: {
+        id,
+        name: first_name + " " + last_name,
+        email
+      }
+    })
   }
  
 
