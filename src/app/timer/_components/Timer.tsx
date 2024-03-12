@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   PlayIcon,
   PauseIcon,
@@ -9,57 +9,37 @@ import {
 } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
-import { updateTimerStateAction } from "~/app/timer/action";
+import { updateTimerStateAction } from "~/app/timer/_actions/action";
 import { api } from "~/trpc/react";
 import { Card } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
 import { formatTime } from "~/lib/utils";
 import TimerSettings from "./TimerSettings";
 import TimerTabs from "./TimerTabs";
+import { PomodoroContext } from "../_context/PomodoroContext";
 
-type TimerProps = {
-  id: string;
-  taskId: string;
-  focusLength: number;
-  restLength: number;
-  currentFocusTime: number;
-  currentRestTime: number;
-  pomodorosCompleted: number;
-  totalFocusTime: number;
-  totalRestTime: number;
-  isBreakTime: boolean;
-};
+export default function Timer() {
+  // Context state
+  const { pomodoro, dispatch } = useContext(PomodoroContext)!;
+  const { taskId, isResting, restLength, focusLength } = pomodoro;
 
-export default function Timer({
-  id,
-  taskId,
-  focusLength,
-  restLength,
-  currentFocusTime,
-  currentRestTime,
-  pomodorosCompleted,
-  totalFocusTime,
-  totalRestTime,
-  isBreakTime,
-}: TimerProps) {
+  // Component state
+  const [focusTime, setFocusTime] = useState(pomodoro.currentFocusTime);
+  const [restTime, setRestTime] = useState(pomodoro.currentRestTime);
   const [isActive, setIsActive] = useState(false);
-  const [initialFocusTime, setInitialFocusTime] = useState(focusLength);
-  const [initialRestTime, setInitialRestTime] = useState(restLength);
-  const [isResting, setIsResting] = useState(isBreakTime);
-  const [focusTime, setFocusTime] = useState(currentFocusTime);
-  const [restTime, setRestTime] = useState(currentRestTime);
   const [progress, setProgress] = useState(
-    isResting
-      ? ((initialRestTime - restTime) / initialRestTime) * 100
-      : ((initialFocusTime - focusTime) / initialFocusTime) * 100,
+    pomodoro.isResting
+      ? ((restLength - restTime) / restLength) * 100
+      : ((focusLength - focusTime) / focusLength) * 100,
   );
 
+  // tRPC Mutations
   const completePomodoroMutation =
     api.pomodoro.completePomodoro.useMutation().mutate;
   const completeBreakTimeMutation =
     api.pomodoro.completeBreakTime.useMutation().mutate;
 
-  // Start / Stop the timer
+  // Start / Stop the timer      (To-Do: Turn this into a custom hook)
   useEffect(() => {
     // Send the current state to db upon premature page exit/refresh
     const handleBeforeUnload = () => {
@@ -78,41 +58,46 @@ export default function Timer({
           setRestTime((prevRestTime) => {
             // Reset state and update db when timer hits 0
             if (prevRestTime === 0) {
-              setIsResting(false);
               setIsActive(false);
               setProgress(0);
+              dispatch({
+                type: "complete-break-time",
+                payload: { timeSpentResting: restLength - restTime },
+              });
               completeBreakTimeMutation({
                 taskId,
-                initialRestTime,
-                timeSpentResting: initialRestTime - restTime,
+                restLength,
+                timeSpentResting: restLength - restTime,
               });
-              return initialRestTime;
+              return restLength;
             }
             // Decrement rest timer by 1 second
             return prevRestTime - 1;
           });
-          setProgress(((initialRestTime - restTime) / initialRestTime) * 100);
+          setProgress(((restLength - restTime) / restLength) * 100);
         } else {
           setFocusTime((prevFocusTime) => {
             // Reset state and update db when timer hits 0
             if (prevFocusTime === 0) {
-              setIsResting(true);
+              dispatch({
+                type: "complete-pomodoro",
+                payload: { timeSpentFocusing: focusLength - focusTime },
+              });
               setIsActive(false);
               setProgress(0);
               completePomodoroMutation({
                 taskId,
-                initialFocusTime,
-                timeSpentFocusing: initialFocusTime - focusTime,
+                focusLength,
+                timeSpentFocusing: focusLength - focusTime,
               });
-              return initialFocusTime;
+              return focusLength;
             }
             // Decrement focus timer by 1
             return prevFocusTime - 1;
           });
+
           // Update the progress bar
-          setProgress(
-            ((initialFocusTime - focusTime) / initialFocusTime) * 100,
-          );
+          setProgress(((focusLength - focusTime) / focusLength) * 100);
         }
       }, 1000);
     } else {
@@ -131,24 +116,64 @@ export default function Timer({
     setFocusTime,
     isActive,
     setIsActive,
-    setIsResting,
-    initialFocusTime,
-    initialRestTime,
+    focusLength,
+    restLength,
     isResting,
     completePomodoroMutation,
     completeBreakTimeMutation,
     taskId,
     progress,
+    dispatch,
   ]);
 
   const handleStartPauseClick = () => {
+    // Update the timer after pausing
+    if (isActive) {
+      dispatch({
+        type: "update-current-time",
+        payload: {
+          newCurrentFocusTime: focusTime,
+          newCurrentRestTime: restTime,
+        },
+      });
+      void updateTimerStateAction({ taskId, focusTime, restTime, isResting });
+    }
     setIsActive(!isActive);
-    void updateTimerStateAction({ taskId, focusTime, restTime, isResting }); // Update db on start/pause
   };
 
   const handleResetClick = () => {
     setIsActive(false);
-    isResting ? setRestTime(initialRestTime) : setFocusTime(initialFocusTime);
+    if (isResting) {
+      setRestTime(restLength);
+      dispatch({
+        type: "update-current-time",
+        payload: {
+          newCurrentRestTime: restLength,
+          newCurrentFocusTime: focusTime,
+        },
+      });
+      void updateTimerStateAction({
+        taskId,
+        focusTime,
+        isResting,
+        restTime: restLength,
+      });
+    } else {
+      setFocusTime(focusLength);
+      dispatch({
+        type: "update-current-time",
+        payload: {
+          newCurrentRestTime: restTime,
+          newCurrentFocusTime: focusLength,
+        },
+      });
+      void updateTimerStateAction({
+        taskId,
+        focusTime: focusLength,
+        isResting,
+        restTime,
+      });
+    }
   };
 
   const handleEndClick = () => {
@@ -157,34 +182,40 @@ export default function Timer({
 
     // Update the total time spent focusing or resting
     if (isResting) {
-      setRestTime(initialRestTime);
-      setIsResting(false);
+      setRestTime(restLength);
+      dispatch({
+        type: "complete-break-time",
+        payload: {
+          timeSpentResting: restLength - restTime,
+        },
+      });
+
       completeBreakTimeMutation({
         taskId,
-        initialRestTime,
-        timeSpentResting: initialRestTime - restTime,
+        restLength,
+        timeSpentResting: restLength - restTime,
       });
     } else {
-      setFocusTime(initialFocusTime);
-      setIsResting(true);
+      setFocusTime(focusLength);
+      dispatch({
+        type: "complete-pomodoro",
+        payload: {
+          timeSpentFocusing: focusLength - focusTime,
+        },
+      });
       completePomodoroMutation({
         taskId,
-        initialFocusTime,
-        timeSpentFocusing: initialFocusTime - focusTime,
+        focusLength,
+        timeSpentFocusing: focusLength - focusTime,
       });
     }
   };
 
   return (
-    <div className="md:w-128 w-96 flex-col">
+    <div className="w-96 flex-col md:w-128">
       <TimerTabs
-        taskId={taskId}
-        isResting={isResting}
         focusTime={focusTime}
         restTime={restTime}
-        initialFocusTime={initialFocusTime}
-        initialRestTime={initialRestTime}
-        setIsResting={setIsResting}
         setIsActive={setIsActive}
         setProgress={setProgress}
       />
@@ -193,13 +224,8 @@ export default function Timer({
           <div className="flex justify-end self-end">
             <div className="pr-2 pt-2">
               <TimerSettings
-                taskId={taskId}
-                initialFocusTime={initialFocusTime}
-                initialRestTime={initialRestTime}
                 setFocusTime={setFocusTime}
                 setRestTime={setRestTime}
-                setInitialFocusTime={setInitialFocusTime}
-                setInitialRestTime={setInitialRestTime}
               />
             </div>
           </div>
@@ -242,7 +268,7 @@ export default function Timer({
       <Progress
         value={progress}
         defaultValue={progress}
-        max={isResting ? initialRestTime : initialFocusTime}
+        max={isResting ? restLength : focusLength}
         className="mt-1 w-[100%]"
       />
     </div>

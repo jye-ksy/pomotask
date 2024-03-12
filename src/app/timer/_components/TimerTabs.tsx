@@ -1,37 +1,32 @@
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { updateTimerStateAction } from "../action";
+import { updateTimerStateAction } from "../_actions/action";
+import { PomodoroContext } from "../_context/PomodoroContext";
+import { useContext } from "react";
 
 type TimerTabsProps = {
-  taskId: string;
-  isResting: boolean;
   focusTime: number;
   restTime: number;
-  initialFocusTime: number;
-  initialRestTime: number;
-  setIsResting: React.Dispatch<React.SetStateAction<boolean>>;
   setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
   setProgress: React.Dispatch<React.SetStateAction<number>>;
 };
 
 export default function TimerTabs({
-  taskId,
-  isResting,
   focusTime,
   restTime,
-  initialFocusTime,
-  initialRestTime,
-  setIsResting,
   setIsActive,
   setProgress,
 }: TimerTabsProps) {
+  const { pomodoro, dispatch } = useContext(PomodoroContext)!;
+  const { taskId, focusLength, restLength } = pomodoro;
+  const { isResting } = pomodoro;
   const handleTabChange = (value: string) => {
-    setIsResting(value === "break");
     setIsActive(false);
     setProgress(
       value === "break"
-        ? ((initialRestTime - restTime) / initialRestTime) * 100
-        : ((initialFocusTime - focusTime) / initialFocusTime) * 100,
+        ? ((restLength - restTime) / restLength) * 100
+        : ((focusLength - focusTime) / focusLength) * 100,
     );
+    dispatch({ type: "update-timer-mode" });
     void updateTimerStateAction({
       taskId,
       focusTime,
@@ -42,7 +37,7 @@ export default function TimerTabs({
 
   return (
     <Tabs
-      defaultValue={isResting ? "break" : "pomodoro"}
+      value={isResting ? "break" : "pomodoro"}
       onValueChange={(value: string) => {
         handleTabChange(value);
       }}
