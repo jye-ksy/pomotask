@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SignInButton, SignOutButton, auth } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, UserButton, auth } from "@clerk/nextjs";
 
 export async function Navbar() {
     const { userId } : { userId: string | null } = auth();
@@ -19,9 +19,12 @@ export async function Navbar() {
               <Link className="hover:text-gray-400" href="/create/project">
                 New Project
               </Link>
-              <SignOutButton/> 
+              <div className="ml-auto"><UserButton afterSignOutUrl="/"/></div>
+              {/* <SignOutButton/>  */}
               </div>
-            : <SignInButton />}
+            :<Link className="hover:text-gray-400" href="sign-in">
+            Sign In
+          </Link>}
           </div>
         </div>
       </nav>

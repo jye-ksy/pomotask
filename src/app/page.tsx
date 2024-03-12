@@ -8,7 +8,9 @@ export default async function Home() {
  
   return (
     <main className="min-h-screen ">
-      <section className="container py-16"></section>
+      <section className="container py-16 flex justify-center items-center">
+        Some Home Screen Content
+      </section>
     </main>
   );
 }

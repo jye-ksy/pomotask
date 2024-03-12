@@ -3,6 +3,7 @@ import { projectRouter } from "./routers/project";
 import { createTRPCRouter } from "~/server/api/trpc";
 import { pomodoroRouter } from "./routers/pomodoro";
 import { taskRouter } from './routers/task';
+import { userRouter } from './routers/user';
 
 /**
  * This is the primary router for your server.
@@ -13,7 +14,8 @@ export const appRouter = createTRPCRouter({
   post: postRouter,
   project: projectRouter,
   pomodoro: pomodoroRouter,
-  task: taskRouter
+  task: taskRouter,
+  user: userRouter
 });
 
 // export type definition of API
