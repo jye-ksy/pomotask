@@ -64,30 +64,38 @@ export const pomodoroRouter = createTRPCRouter({
     .input(
       z.object({
         taskId: z.string(),
-        initialFocusTime: z.number(),
+        focusLength: z.number(),
         timeSpentFocusing: z.number(),
       }),
     )
     .mutation(
-      async ({
-        ctx,
-        input: { taskId, initialFocusTime, timeSpentFocusing },
-      }) => {
-        const pomodoro = await ctx.db.pomodoro.update({
-          where: {
-            taskId,
-          },
-          data: {
-            currentFocusTime: initialFocusTime,
-            pomodorosCompleted: {
-              increment: 1,
-            },
-            totalFocusTime: {
-              increment: timeSpentFocusing,
-            },
-            isResting: true,
-          },
-        });
+      async ({ ctx, input: { taskId, focusLength, timeSpentFocusing } }) => {
+        const pomodoro =
+          timeSpentFocusing > 0
+            ? await ctx.db.pomodoro.update({
+                where: {
+                  taskId,
+                },
+                data: {
+                  currentFocusTime: focusLength,
+                  pomodorosCompleted: {
+                    increment: 1,
+                  },
+                  totalFocusTime: {
+                    increment: timeSpentFocusing,
+                  },
+                  isResting: true,
+                },
+              })
+            : await ctx.db.pomodoro.update({
+                where: {
+                  taskId,
+                },
+                data: {
+                  currentFocusTime: focusLength,
+                  isResting: true,
+                },
+              });
         return pomodoro;
       },
     ),
@@ -95,18 +103,18 @@ export const pomodoroRouter = createTRPCRouter({
     .input(
       z.object({
         taskId: z.string(),
-        initialRestTime: z.number(),
+        restLength: z.number(),
         timeSpentResting: z.number(),
       }),
     )
     .mutation(
-      async ({ ctx, input: { taskId, initialRestTime, timeSpentResting } }) => {
+      async ({ ctx, input: { taskId, restLength, timeSpentResting } }) => {
         const pomodoro = await ctx.db.pomodoro.update({
           where: {
             taskId,
           },
           data: {
-            currentRestTime: initialRestTime,
+            currentRestTime: restLength,
             isResting: false,
             totalRestTime: {
               increment: timeSpentResting,
