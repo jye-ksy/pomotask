@@ -105,6 +105,11 @@ export default function Timer() {
       clearInterval(interval);
     }
 
+    document.title = isResting
+      ? `${formatTime(restTime)} - Break Time!`
+      : isActive
+        ? `${formatTime(focusTime)} - (To-do: Add task name here)`
+        : `${formatTime(focusTime)} - Start focusing`;
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       clearInterval(interval);
