@@ -7,8 +7,8 @@ export default function TimerStats() {
   const { pomodoro } = useContext(PomodoroContext)!;
 
   return (
-    <div className="grid w-96 grid-cols-1 grid-rows-1 gap-4 ">
-      <Card className="mx-2">
+    <div className="grid w-96 grid-cols-1 grid-rows-1 gap-4  md:w-128 md:grid-cols-2 md:gap-0 ">
+      <Card className="mx-2 md:w-60">
         <CardHeader>
           <CardTitle className="flex justify-between text-sm text-muted-foreground">
             Pomodoros completed
@@ -23,7 +23,7 @@ export default function TimerStats() {
           </div>
         </CardContent>
       </Card>
-      <Card className="mx-2">
+      <Card className="mx-2 md:w-60">
         <CardHeader>
           <CardTitle className="flex justify-between text-sm text-muted-foreground">
             Total time spent on task
