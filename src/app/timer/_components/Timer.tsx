@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   PlayIcon,
   PauseIcon,
@@ -9,62 +9,42 @@ import {
 } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
-import { updateTimerStateAction } from "~/app/timer/action";
+import { updateTimerStateAction } from "~/app/timer/_actions/action";
 import { api } from "~/trpc/react";
 import { Card } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
-import { SECONDS_IN_MINUTE } from "~/lib/constants";
-import { secondsToMinutes } from "~/lib/utils";
+import { formatTime } from "~/lib/utils";
 import TimerSettings from "./TimerSettings";
+import TimerTabs from "./TimerTabs";
+import { PomodoroContext } from "../_context/PomodoroContext";
 
-type TimerProps = {
-  id: string;
-  taskId: string;
-  focusLength: number;
-  restLength: number;
-  currentFocusTime: number;
-  currentRestTime: number;
-  pomodorosCompleted: number;
-  totalFocusTime: number;
-  totalRestTime: number;
-  isBreakTime: boolean;
-};
+export default function Timer() {
+  // Context state
+  const { pomodoro, dispatch } = useContext(PomodoroContext)!;
+  const { taskId, isResting, restLength, focusLength } = pomodoro;
 
-export default function Timer({
-  id,
-  taskId,
-  focusLength,
-  restLength,
-  currentFocusTime,
-  currentRestTime,
-  pomodorosCompleted,
-  totalFocusTime,
-  totalRestTime,
-  isBreakTime,
-}: TimerProps) {
+  // Component state
+  const [focusTime, setFocusTime] = useState(pomodoro.currentFocusTime);
+  const [restTime, setRestTime] = useState(pomodoro.currentRestTime);
   const [isActive, setIsActive] = useState(false);
-  const [initialFocusTime, setInitialFocusTime] = useState(focusLength);
-  const [initialRestTime, setInitialRestTime] = useState(restLength);
-  const [isResting, setIsResting] = useState(isBreakTime);
-  const [focusTime, setFocusTime] = useState(currentFocusTime);
-  const [restTime, setRestTime] = useState(currentRestTime);
   const [progress, setProgress] = useState(
-    isResting
-      ? ((initialRestTime - restTime) / initialRestTime) * 100
-      : ((initialFocusTime - focusTime) / initialFocusTime) * 100,
+    pomodoro.isResting
+      ? ((restLength - restTime) / restLength) * 100
+      : ((focusLength - focusTime) / focusLength) * 100,
   );
 
+  // tRPC Mutations
   const completePomodoroMutation =
     api.pomodoro.completePomodoro.useMutation().mutate;
   const completeBreakTimeMutation =
     api.pomodoro.completeBreakTime.useMutation().mutate;
 
-  // Start / Stop the timer
+  // Start / Stop the timer      (To-Do: Turn this into a custom hook)
   useEffect(() => {
     // Send the current state to db upon premature page exit/refresh
     const handleBeforeUnload = () => {
       // e.preventDefault(); // prompt before reload
-      void updateTimerStateAction({ taskId, focusTime, restTime });
+      void updateTimerStateAction({ taskId, focusTime, restTime, isResting });
     };
 
     // Event listener that fires after page exit/refresh
@@ -78,41 +58,46 @@ export default function Timer({
           setRestTime((prevRestTime) => {
             // Reset state and update db when timer hits 0
             if (prevRestTime === 0) {
-              setIsResting(false);
               setIsActive(false);
               setProgress(0);
+              dispatch({
+                type: "complete-break-time",
+                payload: { timeSpentResting: restLength - restTime },
+              });
               completeBreakTimeMutation({
                 taskId,
-                initialRestTime,
-                timeSpentResting: initialRestTime - restTime,
+                restLength,
+                timeSpentResting: restLength - restTime,
               });
-              return initialRestTime;
+              return restLength;
             }
             // Decrement rest timer by 1 second
             return prevRestTime - 1;
           });
-          setProgress(((initialRestTime - restTime) / initialRestTime) * 100);
+          setProgress(((restLength - restTime) / restLength) * 100);
         } else {
           setFocusTime((prevFocusTime) => {
             // Reset state and update db when timer hits 0
             if (prevFocusTime === 0) {
-              setIsResting(true);
+              dispatch({
+                type: "complete-pomodoro",
+                payload: { timeSpentFocusing: focusLength - focusTime },
+              });
               setIsActive(false);
               setProgress(0);
               completePomodoroMutation({
                 taskId,
-                initialFocusTime,
-                timeSpentFocusing: initialFocusTime - focusTime,
+                focusLength,
+                timeSpentFocusing: focusLength - focusTime,
               });
-              return initialFocusTime;
+              return focusLength;
             }
             // Decrement focus timer by 1
             return prevFocusTime - 1;
           });
+
           // Update the progress bar
-          setProgress(
-            ((initialFocusTime - focusTime) / initialFocusTime) * 100,
-          );
+          setProgress(((focusLength - focusTime) / focusLength) * 100);
         }
       }, 1000);
     } else {
@@ -131,23 +116,64 @@ export default function Timer({
     setFocusTime,
     isActive,
     setIsActive,
-    setIsResting,
-    initialFocusTime,
-    initialRestTime,
+    focusLength,
+    restLength,
     isResting,
     completePomodoroMutation,
     completeBreakTimeMutation,
     taskId,
     progress,
+    dispatch,
   ]);
 
   const handleStartPauseClick = () => {
+    // Update the timer after pausing
+    if (isActive) {
+      dispatch({
+        type: "update-current-time",
+        payload: {
+          newCurrentFocusTime: focusTime,
+          newCurrentRestTime: restTime,
+        },
+      });
+      void updateTimerStateAction({ taskId, focusTime, restTime, isResting });
+    }
     setIsActive(!isActive);
   };
 
   const handleResetClick = () => {
     setIsActive(false);
-    isResting ? setRestTime(initialRestTime) : setFocusTime(initialFocusTime);
+    if (isResting) {
+      setRestTime(restLength);
+      dispatch({
+        type: "update-current-time",
+        payload: {
+          newCurrentRestTime: restLength,
+          newCurrentFocusTime: focusTime,
+        },
+      });
+      void updateTimerStateAction({
+        taskId,
+        focusTime,
+        isResting,
+        restTime: restLength,
+      });
+    } else {
+      setFocusTime(focusLength);
+      dispatch({
+        type: "update-current-time",
+        payload: {
+          newCurrentRestTime: restTime,
+          newCurrentFocusTime: focusLength,
+        },
+      });
+      void updateTimerStateAction({
+        taskId,
+        focusTime: focusLength,
+        isResting,
+        restTime,
+      });
+    }
   };
 
   const handleEndClick = () => {
@@ -156,67 +182,84 @@ export default function Timer({
 
     // Update the total time spent focusing or resting
     if (isResting) {
-      setRestTime(initialRestTime);
-      setIsResting(false);
+      setRestTime(restLength);
+      dispatch({
+        type: "complete-break-time",
+        payload: {
+          timeSpentResting: restLength - restTime,
+        },
+      });
+
       completeBreakTimeMutation({
         taskId,
-        initialRestTime,
-        timeSpentResting: initialRestTime - restTime,
+        restLength,
+        timeSpentResting: restLength - restTime,
       });
     } else {
-      setFocusTime(initialFocusTime);
-      setIsResting(true);
+      setFocusTime(focusLength);
+      dispatch({
+        type: "complete-pomodoro",
+        payload: {
+          timeSpentFocusing: focusLength - focusTime,
+        },
+      });
       completePomodoroMutation({
         taskId,
-        initialFocusTime,
-        timeSpentFocusing: initialFocusTime - focusTime,
+        focusLength,
+        timeSpentFocusing: focusLength - focusTime,
       });
     }
   };
 
   return (
-    <div className="w-1/5 min-w-96 flex-col">
+    <div className="w-96 flex-col md:w-128">
+      <TimerTabs
+        focusTime={focusTime}
+        restTime={restTime}
+        setIsActive={setIsActive}
+        setProgress={setProgress}
+      />
       <Card className="pb-10">
-        <div className="flex-col">
-          <div className="flex justify-end">
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex justify-end self-end">
             <div className="pr-2 pt-2">
               <TimerSettings
-                taskId={taskId}
-                initialFocusTime={initialFocusTime}
-                initialRestTime={initialRestTime}
                 setFocusTime={setFocusTime}
                 setRestTime={setRestTime}
-                setInitialFocusTime={setInitialFocusTime}
-                setInitialRestTime={setInitialRestTime}
               />
             </div>
           </div>
-          <div className="flex  justify-center  text-4xl font-bold">
-            {isResting ? "Break Time" : "Focus Time"}
-          </div>
-          <div className="mt-8 flex justify-center  pb-4 text-9xl  font-bold">
+          <div className="mt-8 flex justify-center pb-4 text-7xl font-bold md:text-9xl">
             {isResting ? formatTime(restTime) : formatTime(focusTime)}
           </div>
-          <div className="mx-12 mt-8 flex  justify-around text-7xl font-medium">
+          <div className="mt-8 flex w-60 justify-around text-sm font-medium md:mx-12 md:w-96 md:justify-around md:px-2 md:text-7xl">
             <Button
               onClick={() => {
                 handleStartPauseClick();
-                void updateTimerStateAction({ taskId, focusTime, restTime }); // Update db on start/pause
               }}
+              className="w-16 md:w-24"
             >
               {isActive ? (
-                <PauseIcon className="mr-2 h-4 w-4" />
+                <PauseIcon className="invisible h-4 w-4 md:visible md:mr-2" />
               ) : (
-                <PlayIcon className="mr-2 h-4 w-4" />
+                <PlayIcon className="invisible h-4 w-4 md:visible md:mr-2" />
               )}
               {isActive ? "Pause" : "Start"}
             </Button>
-            <Button variant="secondary" onClick={handleResetClick}>
-              <RotateCcwIcon className="mr-2 h-4 w-4" />
+            <Button
+              variant="secondary"
+              onClick={handleResetClick}
+              className="w-16 md:w-24"
+            >
+              <RotateCcwIcon className="invisible h-4 w-4 md:visible md:mr-2" />
               Reset
             </Button>
-            <Button variant="ghost" onClick={handleEndClick}>
-              <AlarmClockCheckIcon className="mr-2 h-4 w-4" />
+            <Button
+              variant="ghost"
+              onClick={handleEndClick}
+              className="w-16 md:w-24"
+            >
+              <AlarmClockCheckIcon className="invisible h-4 w-4 md:visible md:mr-2" />
               End
             </Button>
           </div>
@@ -224,18 +267,10 @@ export default function Timer({
       </Card>
       <Progress
         value={progress}
-        max={isResting ? initialRestTime : initialFocusTime}
+        defaultValue={progress}
+        max={isResting ? restLength : focusLength}
         className="mt-1 w-[100%]"
       />
     </div>
   );
-}
-
-function formatTime(seconds: number) {
-  return `${Math.floor(secondsToMinutes(seconds))
-    .toString()
-    .padStart(
-      2,
-      "0",
-    )}:${(seconds % SECONDS_IN_MINUTE).toString().padStart(2, "0")}`;
 }

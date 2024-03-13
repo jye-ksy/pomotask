@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlarmClockIcon, SettingsIcon } from "lucide-react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
@@ -8,7 +8,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -28,6 +27,7 @@ import { Slider } from "~/components/ui/slider";
 import { toast } from "~/components/ui/use-toast";
 import { minutesToSeconds, secondsToMinutes } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { PomodoroContext } from "../_context/PomodoroContext";
 
 const timerSettingsSchema = z.object({
   pomodoro: z.coerce.number().min(1).max(99),
@@ -35,29 +35,21 @@ const timerSettingsSchema = z.object({
 });
 
 type TimerSettingsProps = {
-  taskId: string;
-  initialFocusTime: number;
-  initialRestTime: number;
   setFocusTime: React.Dispatch<React.SetStateAction<number>>;
   setRestTime: React.Dispatch<React.SetStateAction<number>>;
-  setInitialRestTime: React.Dispatch<React.SetStateAction<number>>;
-  setInitialFocusTime: React.Dispatch<React.SetStateAction<number>>;
 };
 
 export default function TimerSettings({
-  taskId,
-  initialFocusTime,
-  initialRestTime,
   setFocusTime,
   setRestTime,
-  setInitialFocusTime,
-  setInitialRestTime,
 }: TimerSettingsProps) {
+  const { pomodoro, dispatch } = useContext(PomodoroContext)!;
+  const { taskId } = pomodoro;
   const [pomodoroMinutes, setPomodoroMinutes] = useState(
-    secondsToMinutes(initialFocusTime),
+    secondsToMinutes(pomodoro.focusLength),
   );
   const [breakMinutes, setBreakMinutes] = useState(
-    secondsToMinutes(initialRestTime),
+    secondsToMinutes(pomodoro.restLength),
   );
   const timerSettingsForm = useForm<z.infer<typeof timerSettingsSchema>>({
     resolver: zodResolver(timerSettingsSchema),
@@ -75,8 +67,13 @@ export default function TimerSettings({
   ) => {
     setFocusTime(minutesToSeconds(data.pomodoro));
     setRestTime(minutesToSeconds(data.break));
-    setInitialFocusTime(minutesToSeconds(data.pomodoro));
-    setInitialRestTime(minutesToSeconds(data.break));
+    dispatch({
+      type: "update-timer-length",
+      payload: {
+        newFocusLength: minutesToSeconds(data.pomodoro),
+        newRestLength: minutesToSeconds(data.break),
+      },
+    });
     setPomodoroMinutes(data.pomodoro);
     setBreakMinutes(data.break);
 
@@ -139,17 +136,13 @@ export default function TimerSettings({
           <SettingsIcon className="h-4 w-4 text-gray-500" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-72">
         <Form {...timerSettingsForm}>
           <form
             onSubmit={timerSettingsForm.handleSubmit(handleTimerSettingsSubmit)}
           >
             <DialogHeader className="mb-8">
-              <DialogTitle>Settings</DialogTitle>
-              <DialogDescription>
-                Make changes to the timer here. Click save when you&apos;re
-                done.
-              </DialogDescription>
+              <DialogTitle className="flex">Settings</DialogTitle>
             </DialogHeader>
             <Label className="mb-6 flex">
               <AlarmClockIcon className="mb-2 mr-2 h-4 w-4 text-muted-foreground" />
