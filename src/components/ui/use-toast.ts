@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+"use client";
+
+>>>>>>> dev
 // Inspired by react-hot-toast library
 import * as React from "react"
 

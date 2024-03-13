@@ -6,7 +6,6 @@ import {
   PauseIcon,
   RotateCcwIcon,
   AlarmClockCheckIcon,
-  SettingsIcon,
 } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
@@ -14,6 +13,9 @@ import { updateTimerStateAction } from "~/app/timer/action";
 import { api } from "~/trpc/react";
 import { Card } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
+import { SECONDS_IN_MINUTE } from "~/lib/constants";
+import { secondsToMinutes } from "~/lib/utils";
+import TimerSettings from "./TimerSettings";
 
 type TimerProps = {
   id: string;
@@ -41,24 +43,27 @@ export default function Timer({
   isBreakTime,
 }: TimerProps) {
   const [isActive, setIsActive] = useState(false);
-
-  // To do: Implement a way to update focus/break times
   const [initialFocusTime, setInitialFocusTime] = useState(focusLength);
   const [initialRestTime, setInitialRestTime] = useState(restLength);
-
   const [isResting, setIsResting] = useState(isBreakTime);
   const [focusTime, setFocusTime] = useState(currentFocusTime);
   const [restTime, setRestTime] = useState(currentRestTime);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(
+    isResting
+      ? ((initialRestTime - restTime) / initialRestTime) * 100
+      : ((initialFocusTime - focusTime) / initialFocusTime) * 100,
+  );
+
   const completePomodoroMutation =
     api.pomodoro.completePomodoro.useMutation().mutate;
   const completeBreakTimeMutation =
     api.pomodoro.completeBreakTime.useMutation().mutate;
 
+  // Start / Stop the timer
   useEffect(() => {
-    // Update state on page exit/refresh
-    const handleBeforeUnload = (e: Event) => {
-      e.preventDefault(); // prompt before reload
+    // Send the current state to db upon premature page exit/refresh
+    const handleBeforeUnload = () => {
+      // e.preventDefault(); // prompt before reload
       void updateTimerStateAction({ taskId, focusTime, restTime });
     };
 
@@ -69,9 +74,9 @@ export default function Timer({
 
     if (isActive && (focusTime >= 0 || restTime >= 0)) {
       interval = setInterval(() => {
-        // Decrement rest timer by 1 second
         if (isResting) {
           setRestTime((prevRestTime) => {
+            // Reset state and update db when timer hits 0
             if (prevRestTime === 0) {
               setIsResting(false);
               setIsActive(false);
@@ -83,12 +88,13 @@ export default function Timer({
               });
               return initialRestTime;
             }
+            // Decrement rest timer by 1 second
             return prevRestTime - 1;
           });
           setProgress(((initialRestTime - restTime) / initialRestTime) * 100);
         } else {
-          // Decrement focus timer by 1 second
           setFocusTime((prevFocusTime) => {
+            // Reset state and update db when timer hits 0
             if (prevFocusTime === 0) {
               setIsResting(true);
               setIsActive(false);
@@ -100,8 +106,10 @@ export default function Timer({
               });
               return initialFocusTime;
             }
+            // Decrement focus timer by 1
             return prevFocusTime - 1;
           });
+          // Update the progress bar
           setProgress(
             ((initialFocusTime - focusTime) / initialFocusTime) * 100,
           );
@@ -144,7 +152,9 @@ export default function Timer({
 
   const handleEndClick = () => {
     setIsActive(false);
-    setProgress(0);
+    setProgress(0); // Reset progress bar
+
+    // Update the total time spent focusing or resting
     if (isResting) {
       setRestTime(initialRestTime);
       setIsResting(false);
@@ -170,9 +180,15 @@ export default function Timer({
         <div className="flex-col">
           <div className="flex justify-end">
             <div className="pr-2 pt-2">
-              <Button variant="ghost" size="icon">
-                <SettingsIcon className="h-4 w-4" />
-              </Button>
+              <TimerSettings
+                taskId={taskId}
+                initialFocusTime={initialFocusTime}
+                initialRestTime={initialRestTime}
+                setFocusTime={setFocusTime}
+                setRestTime={setRestTime}
+                setInitialFocusTime={setInitialFocusTime}
+                setInitialRestTime={setInitialRestTime}
+              />
             </div>
           </div>
           <div className="flex  justify-center  text-4xl font-bold">
@@ -185,7 +201,7 @@ export default function Timer({
             <Button
               onClick={() => {
                 handleStartPauseClick();
-                void updateTimerStateAction({ taskId, focusTime, restTime });
+                void updateTimerStateAction({ taskId, focusTime, restTime }); // Update db on start/pause
               }}
             >
               {isActive ? (
@@ -209,14 +225,17 @@ export default function Timer({
       <Progress
         value={progress}
         max={isResting ? initialRestTime : initialFocusTime}
-        className="mt-2 w-[100%]"
+        className="mt-1 w-[100%]"
       />
     </div>
   );
 }
 
 function formatTime(seconds: number) {
-  return `${Math.floor(seconds / 60)
+  return `${Math.floor(secondsToMinutes(seconds))
     .toString()
-    .padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+    .padStart(
+      2,
+      "0",
+    )}:${(seconds % SECONDS_IN_MINUTE).toString().padStart(2, "0")}`;
 }

@@ -37,6 +37,7 @@ export default function RootLayout({
               <TaskSideBar/>
             </SidebarContextProvider>
           </TRPCReactProvider>
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

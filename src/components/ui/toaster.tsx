@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 "use client"
+=======
+"use client";
+>>>>>>> dev
 
 import {
   Toast,
@@ -7,6 +11,7 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
+<<<<<<< HEAD
 } from "~/components/ui/toast"
 import { useToast } from "~/components/ui/use-toast"
 
@@ -15,6 +20,16 @@ export function Toaster() {
 
   return (
     <ToastProvider>
+=======
+} from "~/components/ui/toast";
+import { useToast } from "~/components/ui/use-toast";
+
+export function Toaster() {
+  const { toasts } = useToast();
+
+  return (
+    <ToastProvider duration={3000}>
+>>>>>>> dev
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
@@ -27,9 +42,17 @@ export function Toaster() {
             {action}
             <ToastClose />
           </Toast>
+<<<<<<< HEAD
         )
       })}
       <ToastViewport />
     </ToastProvider>
   )
+=======
+        );
+      })}
+      <ToastViewport />
+    </ToastProvider>
+  );
+>>>>>>> dev
 }
