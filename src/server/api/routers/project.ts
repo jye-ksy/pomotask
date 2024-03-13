@@ -15,14 +15,19 @@ export const projectRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input: {name, date} }) => {
-
-      return ctx.db.project.create({
+      return await ctx.db.project.create({
         data: {
           name, 
           completeByDate: date,
-          userId: ctx.userId
+          user: {
+            connect: {
+              id: ctx.userId
+            }
+          }
         },
       });
+
+
     }),
 
   getAllProjects: protectedProcedure

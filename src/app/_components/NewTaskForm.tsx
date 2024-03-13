@@ -61,6 +61,7 @@ const formSchema = z.object({
 export default function NewTaskForm() {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState("")
+    const [projectId, setProjectId] = useState("");
     const createTask = api.task.create.useMutation();
     const { toast } = useToast();
     const projects = api.project.getAllProjects.useQuery();
@@ -85,7 +86,8 @@ export default function NewTaskForm() {
         // ✅ This will be type-safe and validated.
         console.log(values);
         createTask.mutate({
-            ...values
+            ...values,
+            projectId
         }, {
             onSuccess: (data) => {
               console.log(data);
@@ -262,6 +264,7 @@ export default function NewTaskForm() {
                                                 value={project.name}
                                                 onSelect={(currentValue) => {
                                                     setValue(currentValue === value ? "" : currentValue)
+                                                    setProjectId(project.id)
                                                     setOpen(false)
                                                 }}
                                             >

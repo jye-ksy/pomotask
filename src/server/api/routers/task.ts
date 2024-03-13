@@ -18,10 +18,11 @@ export const taskRouter = createTRPCRouter({
             priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
             notes: z.union([z.string().length(0), z.string().min(4)])
             .optional()
-            .transform(e => e === "" ? undefined : e)
+            .transform(e => e === "" ? undefined : e),
+            projectId: z.string()
           })
     )
-    .mutation(async ({ ctx, input: {name, due, status, priority, notes } }) => {
+    .mutation(async ({ ctx, input: {name, due, status, priority, notes, projectId } }) => {
 
       return ctx.db.task.create({
         data: {
@@ -30,7 +31,16 @@ export const taskRouter = createTRPCRouter({
             due,
             priority,
             notes,
-            userId: ctx.userId
+            project: {
+              connect: {
+                id: projectId
+              }
+            },
+            user: {
+              connect: {
+                id: ctx.userId
+              }
+            }
         },
       });
     }),
