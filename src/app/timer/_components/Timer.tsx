@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
 import {
   PlayIcon,
   PauseIcon,
@@ -17,6 +17,7 @@ import { formatTime } from "~/lib/utils";
 import TimerSettings from "./TimerSettings";
 import TimerTabs from "./TimerTabs";
 import { PomodoroContext } from "../_context/PomodoroContext";
+import { useCountdown } from "../_hooks/useCountdown";
 
 export default function Timer() {
   // Context state
@@ -39,101 +40,10 @@ export default function Timer() {
   const completeBreakTimeMutation =
     api.pomodoro.completeBreakTime.useMutation().mutate;
 
-  // Start / Stop the timer      (To-Do: Turn this into a custom hook)
-  useEffect(() => {
-    // Send the current state to db upon premature page exit/refresh
-    const handleBeforeUnload = () => {
-      // e.preventDefault(); // prompt before reload
-      void updateTimerStateAction({ taskId, focusTime, restTime, isResting });
-    };
-
-    // Event listener that fires after page exit/refresh
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    let interval: NodeJS.Timeout | undefined;
-
-    if (isActive && (focusTime >= 0 || restTime >= 0)) {
-      interval = setInterval(() => {
-        if (isResting) {
-          setRestTime((prevRestTime) => {
-            // Reset state and update db when timer hits 0
-            if (prevRestTime === 0) {
-              setIsActive(false);
-              setProgress(0);
-              dispatch({
-                type: "complete-break-time",
-                payload: { timeSpentResting: restLength - restTime },
-              });
-              completeBreakTimeMutation({
-                taskId,
-                restLength,
-                timeSpentResting: restLength - restTime,
-              });
-              return restLength;
-            }
-            // Decrement rest timer by 1 second
-            return prevRestTime - 1;
-          });
-          setProgress(((restLength - restTime) / restLength) * 100);
-        } else {
-          setFocusTime((prevFocusTime) => {
-            // Reset state and update db when timer hits 0
-            if (prevFocusTime === 0) {
-              dispatch({
-                type: "complete-pomodoro",
-                payload: { timeSpentFocusing: focusLength - focusTime },
-              });
-              setIsActive(false);
-              setProgress(0);
-              completePomodoroMutation({
-                taskId,
-                focusLength,
-                timeSpentFocusing: focusLength - focusTime,
-              });
-              return focusLength;
-            }
-            // Decrement focus timer by 1
-            return prevFocusTime - 1;
-          });
-
-          // Update the progress bar
-          setProgress(((focusLength - focusTime) / focusLength) * 100);
-        }
-      }, 1000);
-    } else {
-      // Stop timer if not active
-      clearInterval(interval);
-    }
-
-    document.title = isResting
-      ? `${formatTime(restTime)} - Break Time!`
-      : isActive
-        ? `${formatTime(focusTime)} - (To-do: Add task name here)`
-        : `${formatTime(focusTime)} - Start focusing`;
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      clearInterval(interval);
-    };
-  }, [
-    focusTime,
-    restTime,
-    setRestTime,
-    setFocusTime,
-    isActive,
-    setIsActive,
-    focusLength,
-    restLength,
-    isResting,
-    completePomodoroMutation,
-    completeBreakTimeMutation,
-    taskId,
-    progress,
-    dispatch,
-  ]);
-
+  // Event handlers
   const handleStartPauseClick = () => {
-    // Update the timer after pausing
     if (isActive) {
+      // Update the timer after pausing
       dispatch({
         type: "update-current-time",
         payload: {
@@ -215,6 +125,18 @@ export default function Timer() {
       });
     }
   };
+
+  // Custom useEffect hook to start/stop the timer
+  useCountdown({
+    focusTime,
+    restTime,
+    progress,
+    isActive,
+    setFocusTime,
+    setRestTime,
+    setProgress,
+    setIsActive,
+  });
 
   return (
     <div className="w-96 flex-col md:w-128">
