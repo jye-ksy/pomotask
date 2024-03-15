@@ -15,22 +15,21 @@ datasource db {
 }
 
 model Task {
-  id         String    @id @default(uuid())
-  name       String
-  priority   Priority  @default(LOW)
-  createdAt  DateTime  @default(now())
-  due        DateTime
-  updatedAt  DateTime  @updatedAt
-  status     Status    @default(NOT_STARTED)
-  completed  Boolean   @default(false)
-  notes      String?
-  projectId  String?
-  userId     String
-  project    Project?  @relation(fields: [projectId], references: [id])
-  user       User      @relation(fields: [userId], references: [id])
-  Pomodoro   Pomodoro?
+  id        String    @id @default(uuid())
+  name      String
+  priority  Priority  @default(LOW)
+  createdAt DateTime  @default(now())
+  due       DateTime?
+  updatedAt DateTime  @updatedAt
+  status    Status    @default(NOT_STARTED)
+  completed Boolean   @default(false)
+  notes     String?
+  projectId String?
+  userId    String
+  project   Project?  @relation(fields: [projectId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  Pomodoro  Pomodoro?
 
-  
   @@index([projectId])
   @@index([userId])
 }
