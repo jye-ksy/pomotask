@@ -2,12 +2,14 @@ import "~/styles/globals.css";
 
 import { Inter } from "next/font/google";
 
+
 import { TRPCReactProvider } from "~/trpc/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Navbar } from "./_components/Navbar";
 import { Toaster } from "../components/ui/toaster"
 import { SidebarContextProvider } from "~/context/SidebarContext";
 import TaskSideBar from "./_components/TaskSidebar";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,7 +34,7 @@ export default function RootLayout({
           <TRPCReactProvider>
             <SidebarContextProvider>
               <Navbar />
-              {children}
+                {children}
               <Toaster/>
               <TaskSideBar/>
             </SidebarContextProvider>
