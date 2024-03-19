@@ -8,7 +8,7 @@ type ProjectCardProps = {
 export default function ProjectCard({name, projectId}:ProjectCardProps) {
     const router = useRouter();
 
-    return <div className="bg-gray-50 drop-shadow-md border-solid border-[1px] border-grey-200 rounded-md p-4 min-w-[350px] max-w-[350px] hover:cursor-pointer" onClick={()=> router.push(`/project/${projectId}`)}>
+    return <div className="bg-white drop-shadow-md border-solid border-[1px] border-grey-200 rounded-md p-4 min-w-[350px] max-w-[350px] hover:cursor-pointer" onClick={()=> router.push(`/project/${projectId}`)}>
         <h1 className="font-bold text-md">{name}</h1>
         <div>
             <p className="">A project or task </p>

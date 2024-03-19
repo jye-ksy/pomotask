@@ -3,14 +3,13 @@ import { useState } from 'react';
 import KanbanBoard from './KanbanBoard';
 import { DndContext, closestCorners, DragEndEvent} from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-//import { Sortable } from '@dnd-kit/sortable';
 
 export default function ProjectPage() {
 
     const [tasks,setTasks] = useState([
-        {id: 1, title: "Do a task"}, 
-        {id: 2, title: "Another task"}, 
-        {id: 3, title: "Test task"}, 
+        {id: 1, title: "Do a task", status: "Not Started"}, 
+        {id: 2, title: "Another task", status: "In Progress"}, 
+        {id: 3, title: "Test task", status: "Completed"}, 
     ])
     
     //Helper function to find the position of an array
