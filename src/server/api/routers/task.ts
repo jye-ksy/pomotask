@@ -12,10 +12,7 @@ export const taskRouter = createTRPCRouter({
         status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETE"]),
         due: z.date().optional(),
         priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
-        notes: z
-          .union([z.string().length(0), z.string().min(4)])
-          .optional()
-          .transform((e) => (e === "" ? undefined : e)),
+        notes: z.string().optional(),
         projectId: z.string(),
       }),
     )
