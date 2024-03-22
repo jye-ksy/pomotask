@@ -5,8 +5,10 @@ interface TaskProps {
     title: string;
     items: {
       id: number;
-      title: string;
+      name: string;
       status: string;
+      priority: string;
+      notes: string | null;
     }[];
   }
 
@@ -25,7 +27,7 @@ export default function KanbanLane({title, items}: TaskProps) {
             <div ref={setNodeRef} className="flex flex-col min-w-[400px] min-h-[50px] p-4 bg-gray-50 drop-shadow-md border-solid border-[1px] border-grey-200 rounded-md">
                 <div className="flex flex-col gap-4">
                     {items.map((item, index) => (
-                        <KanbanCard key={index} title={item.title} index={index} parent={title}/>
+                        <KanbanCard key={index} id={item.id} name={item.name} index={index} parent={title}/>
                     ))}
                 </div>
             </div>

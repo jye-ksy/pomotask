@@ -1,17 +1,18 @@
 import { useDraggable } from "@dnd-kit/core";
 
 type TaskProps = {
-    title: string;
+    id: number;
+    name: string;
     index: number;
     parent: string;
 }
 
-export default function KanbanCard( {title, index, parent}: TaskProps ) {
-
+export default function KanbanCard( {id, name, index, parent}: TaskProps ) {
     const { attributes, listeners, setNodeRef, transform} = useDraggable({
-        id: title,
+        id: name,
         data: {
-            title, 
+            id,
+            name, 
             index, 
             parent
         }
@@ -31,7 +32,7 @@ export default function KanbanCard( {title, index, parent}: TaskProps ) {
             style={style}
             className="bg-white border py-2 px-4 rounded-sm"
             >
-            {title}
+            {name}
         </div>
     )
 }
