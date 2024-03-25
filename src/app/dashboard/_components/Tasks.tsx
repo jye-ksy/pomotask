@@ -5,13 +5,23 @@ import { DashboardContext } from "../_context/DashboardContext";
 import { Button } from "~/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import Task from "./Task";
+import { api } from "~/trpc/react";
+import { v4 as uuid } from "uuid";
 
 export default function Tasks() {
   const { dashboard, dispatch } = useContext(DashboardContext)!;
   const { tasks } = dashboard;
+  const createTask = api.task.create.useMutation().mutate;
 
   const handleNewTaskClick = () => {
-    dispatch({ type: "create-task" });
+    const newTaskId = uuid();
+    dispatch({ type: "create-task", payload: { id: newTaskId } });
+
+    createTask({
+      id: newTaskId,
+      name: "",
+      status: "NOT_STARTED",
+    });
   };
 
   return (
@@ -41,16 +51,4 @@ export default function Tasks() {
       </div>
     </div>
   );
-}
-
-{
-  /* {tasks?.map((task) => {
-          return (
-            <ProjectCard
-              key={task.id}
-              name={task.name}
-              projectId={task.id.toString()}
-            />
-          );
-        })} */
 }

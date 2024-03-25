@@ -1,42 +1,90 @@
 "use client";
 
-import { Project, Task } from "@prisma/client";
-import {
-  Dispatch,
-  ReactNode,
-  createContext,
-  useReducer,
-  useState,
-} from "react";
+import type { Project, Task } from "@prisma/client";
+import type { Dispatch, ReactNode } from "react";
+import { createContext, useReducer } from "react";
 
-type ProjectState = {
+interface ProjectState {
   id: string;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
   completeByDate: Date;
   completed: boolean;
   tasksId: string | null;
-  userId: string;
-};
+}
 
-type TaskState = {
+interface TaskState {
   id: string;
   name: string;
-  priority: "LOW" | "MEDIUM" | "HIGH";
-  createdAt: Date;
-  due: Date | null;
-  updatedAt: Date;
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
+  priority?: "LOW" | "MEDIUM" | "HIGH";
+  due?: Date;
+  status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
   completed: boolean;
-  notes: string | null;
-  projectId: string | null;
-  userId: string;
-};
+  notes: string;
+  projectId?: string;
+}
 
 interface DashboardState {
   projects: ProjectState[];
   tasks: TaskState[];
+}
+// Reducer actions
+export type DashboardAction =
+  | { type: "create-task"; payload: { id: string } }
+  | {
+      type: "update-task";
+      payload: {
+        id: string;
+        name: string;
+        priority: "LOW" | "MEDIUM" | "HIGH";
+        projectId: string | undefined;
+        // notes: string; To-do: uncomment when implementing way to add notes
+        due?: Date | undefined;
+      };
+    }
+  | { type: "add-project"; payload: { project: Project } };
+
+export function dashboardReducer(
+  state: DashboardState,
+  action: DashboardAction,
+) {
+  switch (action.type) {
+    case "create-task":
+      const newTask = {
+        id: action.payload.id,
+        name: "",
+        completed: false,
+        notes: "",
+      } as TaskState;
+
+      return {
+        ...state,
+        tasks: [...state.tasks, newTask],
+      };
+    case "add-project":
+      console.log("added project");
+      return state;
+    case "update-task":
+      const newState = { ...state };
+      const indexOfTaskToUpdate = state.tasks.findIndex(
+        (task) => task.id === action.payload.id,
+      );
+
+      if (indexOfTaskToUpdate !== -1) {
+        newState.tasks[indexOfTaskToUpdate] = {
+          id: action.payload.id,
+          name: action.payload.name,
+          priority: action.payload.priority,
+          projectId: action.payload.projectId,
+          due: action.payload.due,
+          completed: false,
+          notes: "",
+        };
+      }
+
+      return newState;
+    default:
+      return state;
+  }
 }
 
 export type DashboardContextType = {
@@ -57,45 +105,38 @@ export function DashboardProvider({
   projects: Project[];
   tasks: Task[];
 }) {
-  const [dashboard, dispatch] = useReducer(dashboardReducer, {
-    projects,
-    tasks,
-  });
+  const initialDashboardState = {
+    // Filter out the db related fields
+    projects: projects.map((project) => {
+      return {
+        id: project.id,
+        name: project.name,
+        completeByDate: project.completeByDate,
+        completed: project.completed,
+        tasksId: project.tasksId,
+      };
+    }),
+    tasks: tasks.map((task) => {
+      return {
+        id: task.id,
+        name: task.name,
+        priority: task.priority,
+        due: task.due,
+        status: task.status,
+        completed: task.completed,
+        notes: task.notes,
+        projectId: task.projectId,
+      };
+    }),
+  } as DashboardState;
 
+  const [dashboard, dispatch] = useReducer(
+    dashboardReducer,
+    initialDashboardState,
+  );
   return (
     <DashboardContext.Provider value={{ dispatch, dashboard }}>
       {children}
     </DashboardContext.Provider>
   );
-}
-
-// Reducer actions
-export type DashboardAction =
-  | {
-      type: "add-task";
-      payload: {
-        project: string;
-        status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
-        name: string;
-        priority: "LOW" | "MEDIUM" | "HIGH";
-        notes: string;
-        due?: Date | undefined;
-      };
-    }
-  | { type: "add-project"; payload: { project: Project } };
-
-export function dashboardReducer(
-  state: DashboardState,
-  action: DashboardAction,
-) {
-  switch (action.type) {
-    case "add-project":
-      console.log("added project");
-      return state;
-    case "add-task":
-      console.log("added task");
-      return state;
-    default:
-      return state;
-  }
 }
