@@ -62,8 +62,8 @@ export default function Task({
         ? projects.find((project) => project.id === projectId)?.id
         : undefined,
     },
+    mode: "onBlur",
   });
-
   const updateTask = api.task.update.useMutation().mutate;
 
   const handleTaskSubmit = (data: z.infer<typeof taskSchema>) => {
@@ -86,11 +86,12 @@ export default function Task({
       projectId: data.project,
     });
   };
+
   return (
     <Card className="mb-4 w-72">
       <CardContent>
         <Form {...taskForm}>
-          <form onSubmit={taskForm.handleSubmit(handleTaskSubmit)}>
+          <form onBlur={taskForm.handleSubmit(handleTaskSubmit)}>
             <div className="flex w-full flex-col py-4">
               {/* To-do: Add state then on input, change the font from gray to black*/}
               {/* Name input */}
@@ -233,7 +234,6 @@ export default function Task({
                 }}
               />
             </div>
-            <button type="submit">submit</button>
           </form>
         </Form>
       </CardContent>
