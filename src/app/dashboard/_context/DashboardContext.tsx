@@ -48,7 +48,11 @@ export type DashboardAction =
         status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
       };
     }
-  | { type: "add-project"; payload: { project: Project } };
+  | { type: "add-project"; payload: { project: Project } }
+  | {
+      type: "delete-task";
+      payload: { id: string };
+    };
 
 export function dashboardReducer(
   state: DashboardState,
@@ -68,15 +72,14 @@ export function dashboardReducer(
         ...state,
         tasks: [...state.tasks, newTask],
       };
-    case "add-project":
-      console.log("added project");
-      return state;
     case "update-task":
       const newState = { ...state };
+      // Get the index of the task to update
       const indexOfTaskToUpdate = state.tasks.findIndex(
         (task) => task.id === action.payload.id,
       );
 
+      // Update that task
       if (indexOfTaskToUpdate !== -1) {
         newState.tasks[indexOfTaskToUpdate] = {
           id: action.payload.id,
@@ -91,6 +94,15 @@ export function dashboardReducer(
       }
 
       return newState;
+    case "delete-task":
+      return {
+        ...state,
+        tasks: state.tasks.filter((task) => task.id !== action.payload.id),
+      };
+    case "add-project":
+      // To-do: Implement this
+      console.log("added project");
+      return state;
     default:
       return state;
   }

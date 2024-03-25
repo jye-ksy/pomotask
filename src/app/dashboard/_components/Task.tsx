@@ -1,6 +1,5 @@
 "use client";
 import { Card, CardContent } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
 
 import {
   Select,
@@ -19,7 +18,7 @@ import { format } from "date-fns";
 import { Calendar } from "~/components/ui/calendar";
 import { SelectGroup, SelectLabel } from "~/components/ui/select";
 import { Button } from "~/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, TrashIcon } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -73,6 +72,7 @@ export default function Task({
     mode: "onBlur", // Makes it call updateTask when the form goes out of focus
   });
   const updateTask = api.task.update.useMutation().mutate;
+  const deleteTask = api.task.delete.useMutation().mutate;
 
   const handleTaskSubmit = (data: z.infer<typeof taskSchema>) => {
     dispatch({
@@ -98,12 +98,22 @@ export default function Task({
     });
   };
 
+  const handleDelete = () => {
+    dispatch({
+      type: "delete-task",
+      payload: {
+        id,
+      },
+    });
+    deleteTask({ id });
+  };
+
   return (
     <Card className="mb-4 w-full">
       <CardContent>
         <Form {...taskForm}>
           <form onBlur={taskForm.handleSubmit(handleTaskSubmit)}>
-            <div className="flex w-full flex-col py-4">
+            <div className="flex w-full flex-col pt-2">
               {/* Name input */}
               <FormField
                 control={taskForm.control}
@@ -261,6 +271,15 @@ export default function Task({
                   );
                 }}
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="-mb-4 self-end"
+                onClick={() => handleDelete()}
+              >
+                <TrashIcon className="h-4 w-4 " />
+              </Button>
             </div>
           </form>
         </Form>

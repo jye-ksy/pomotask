@@ -96,6 +96,15 @@ export const taskRouter = createTRPCRouter({
         return task;
       },
     ),
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input: { id } }) => {
+      const task = await ctx.db.task.delete({
+        where: { id },
+      });
+
+      return task;
+    }),
   getAllUserTasks: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.task.findMany({
       where: {
