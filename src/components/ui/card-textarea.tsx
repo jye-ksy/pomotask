@@ -11,20 +11,19 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, ...props }, ref) => {
     const textAreaRef = React.useRef<HTMLTextAreaElement>(null);
 
+    // Resize the textarea height based on the scroll height
     React.useEffect(() => {
       const ref = textAreaRef?.current;
 
       const updateTextareaHeight = () => {
         if (ref) {
           ref.style.height = "auto";
+          // Set the default height to 1 line
           ref.style.height = "40px";
 
           if (ref?.scrollHeight > 40) {
             ref.style.height = ref?.scrollHeight + "px";
           }
-
-          // ref.style.height = "32px";
-          console.log(ref?.scrollHeight, ref.style.height);
         }
       };
 
