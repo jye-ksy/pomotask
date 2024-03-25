@@ -13,7 +13,7 @@ export default function Dashboard({
 }) {
   return (
     <DashboardProvider projects={projects} tasks={tasks}>
-      {/* <Projects /> */}
+      {/* To-Do: Re-implement this <Projects /> */}
       <Tasks />
     </DashboardProvider>
   );

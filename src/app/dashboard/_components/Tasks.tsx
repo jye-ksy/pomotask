@@ -11,10 +11,12 @@ import { v4 as uuid } from "uuid";
 export default function Tasks() {
   const { dashboard, dispatch } = useContext(DashboardContext)!;
   const { tasks } = dashboard;
+  const createTask = api.task.create.useMutation().mutate;
+
+  // Filter the tasks based on their status
   const notStartedTasks = tasks.filter((task) => task.status === "NOT_STARTED");
   const inProgressTasks = tasks.filter((task) => task.status === "IN_PROGRESS");
   const completedTasks = tasks.filter((task) => task.status === "COMPLETE");
-  const createTask = api.task.create.useMutation().mutate;
 
   const handleNotStartedNewTaskClick = () => {
     const newTaskId = uuid();

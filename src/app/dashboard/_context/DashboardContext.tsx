@@ -23,6 +23,7 @@ interface TaskState {
   projectId?: string;
 }
 
+// The state for our context
 interface DashboardState {
   projects: ProjectState[];
   tasks: TaskState[];
@@ -60,6 +61,7 @@ export function dashboardReducer(
 ) {
   switch (action.type) {
     case "create-task":
+      // Create empty task
       const newTask = {
         id: action.payload.id,
         name: "",

@@ -56,7 +56,6 @@ export default function Task({
   status,
 }: TaskProps) {
   const { dashboard, dispatch } = useContext(DashboardContext)!;
-
   const { projects } = dashboard;
   const taskForm = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
@@ -271,6 +270,7 @@ export default function Task({
                   );
                 }}
               />
+              {/* Delete button */}
               <Button
                 type="button"
                 variant="ghost"
