@@ -93,7 +93,7 @@ export function PomodoroProvider({
   children: ReactNode;
   value: Pomodoro;
 }) {
-  const [pomodoro, dispatch] = useReducer(pomodoroReducer, {
+  const initialPomodoroState = {
     id: value.id,
     taskId: value.taskId,
     focusLength: value.focusLength,
@@ -104,7 +104,12 @@ export function PomodoroProvider({
     totalRestTime: value.totalRestTime,
     pomodorosCompleted: value.pomodorosCompleted,
     isResting: value.isResting,
-  });
+  };
+
+  const [pomodoro, dispatch] = useReducer(
+    pomodoroReducer,
+    initialPomodoroState,
+  );
   return (
     <PomodoroContext.Provider value={{ dispatch, pomodoro }}>
       {children}
