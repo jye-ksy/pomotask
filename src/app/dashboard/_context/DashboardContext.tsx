@@ -17,7 +17,7 @@ interface TaskState {
   name: string;
   priority?: "LOW" | "MEDIUM" | "HIGH";
   due?: Date;
-  status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
   completed: boolean;
   notes: string;
   projectId?: string;
@@ -29,7 +29,13 @@ interface DashboardState {
 }
 // Reducer actions
 export type DashboardAction =
-  | { type: "create-task"; payload: { id: string } }
+  | {
+      type: "create-task";
+      payload: {
+        id: string;
+        status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
+      };
+    }
   | {
       type: "update-task";
       payload: {
@@ -37,8 +43,9 @@ export type DashboardAction =
         name: string;
         priority: "LOW" | "MEDIUM" | "HIGH";
         projectId: string | undefined;
-        // notes: string; To-do: uncomment when implementing way to add notes
+        notes: string;
         due?: Date | undefined;
+        status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
       };
     }
   | { type: "add-project"; payload: { project: Project } };
@@ -54,6 +61,7 @@ export function dashboardReducer(
         name: "",
         completed: false,
         notes: "",
+        status: action.payload.status,
       } as TaskState;
 
       return {
@@ -77,7 +85,8 @@ export function dashboardReducer(
           projectId: action.payload.projectId,
           due: action.payload.due,
           completed: false,
-          notes: "",
+          notes: action.payload.notes,
+          status: action.payload.status,
         };
       }
 

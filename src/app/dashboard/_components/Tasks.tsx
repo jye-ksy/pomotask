@@ -11,11 +11,17 @@ import { v4 as uuid } from "uuid";
 export default function Tasks() {
   const { dashboard, dispatch } = useContext(DashboardContext)!;
   const { tasks } = dashboard;
+  const notStartedTasks = tasks.filter((task) => task.status === "NOT_STARTED");
+  const inProgressTasks = tasks.filter((task) => task.status === "IN_PROGRESS");
+  const completedTasks = tasks.filter((task) => task.status === "COMPLETE");
   const createTask = api.task.create.useMutation().mutate;
 
-  const handleNewTaskClick = () => {
+  const handleNotStartedNewTaskClick = () => {
     const newTaskId = uuid();
-    dispatch({ type: "create-task", payload: { id: newTaskId } });
+    dispatch({
+      type: "create-task",
+      payload: { id: newTaskId, status: "NOT_STARTED" },
+    });
 
     createTask({
       id: newTaskId,
@@ -24,30 +30,125 @@ export default function Tasks() {
     });
   };
 
+  const handleInProgressNewTaskClick = () => {
+    const newTaskId = uuid();
+    dispatch({
+      type: "create-task",
+      payload: { id: newTaskId, status: "IN_PROGRESS" },
+    });
+
+    createTask({
+      id: newTaskId,
+      name: "",
+      status: "IN_PROGRESS",
+    });
+  };
+
+  const handleCompletedNewTaskClick = () => {
+    const newTaskId = uuid();
+    dispatch({
+      type: "create-task",
+      payload: { id: newTaskId, status: "COMPLETE" },
+    });
+
+    createTask({
+      id: newTaskId,
+      name: "",
+      status: "COMPLETE",
+    });
+  };
+
   return (
-    <div className="mt-16 flex w-full flex-col items-center">
-      <h1 className="mb-8 text-3xl font-bold">My Task List</h1>
-      <div>
-        {tasks?.map((task) => {
-          return (
-            <Task
-              key={task.id}
-              id={task.id}
-              name={task.name}
-              priority={task.priority}
-              due={task.due}
-              projectId={task.projectId}
-            />
-          );
-        })}
-        <Button
-          onClick={handleNewTaskClick}
-          variant="outline"
-          className="flex h-16 w-full"
-        >
-          <PlusIcon className="h-4 w-4" />
-          <span className="pl-2">New Task</span>
-        </Button>
+    <div className="mt-16 flex w-full flex-col items-center ">
+      <h1 className="mb-8 text-2xl font-bold">My Task List</h1>
+      <div className="w-56">
+        <div className="mb-8 flex flex-col">
+          <span className="mb-4 w-28 rounded-xl bg-gray-100 pl-3 text-base font-semibold">
+            Not Started
+          </span>
+          <div>
+            {notStartedTasks?.map((task) => {
+              return (
+                <Task
+                  key={task.id}
+                  id={task.id}
+                  name={task.name}
+                  notes={task.notes}
+                  priority={task.priority}
+                  due={task.due}
+                  projectId={task.projectId}
+                  status={task.status}
+                />
+              );
+            })}
+            <Button
+              onClick={handleNotStartedNewTaskClick}
+              variant="outline"
+              className="flex h-10 w-full"
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span className="pl-2">New Task</span>
+            </Button>
+          </div>
+        </div>
+        <div className="mb-8 flex flex-col">
+          <span className="mb-4 w-28 rounded-xl bg-amber-100 pl-3 text-base font-semibold">
+            In Progress
+          </span>
+          <div>
+            {inProgressTasks?.map((task) => {
+              return (
+                <Task
+                  key={task.id}
+                  id={task.id}
+                  name={task.name}
+                  notes={task.notes}
+                  priority={task.priority}
+                  due={task.due}
+                  projectId={task.projectId}
+                  status={task.status}
+                />
+              );
+            })}
+            <Button
+              onClick={handleInProgressNewTaskClick}
+              variant="outline"
+              className="flex h-10 w-full"
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span className="pl-2">New Task</span>
+            </Button>
+          </div>
+        </div>
+        <div className="mb-8 flex flex-col">
+          <span className="mb-4 w-28 rounded-xl bg-green-100 pl-3 text-base font-semibold">
+            Completed
+          </span>
+          <div>
+            {completedTasks?.map((task) => {
+              return (
+                <Task
+                  key={task.id}
+                  id={task.id}
+                  name={task.name}
+                  notes={task.notes}
+                  priority={task.priority}
+                  due={task.due}
+                  projectId={task.projectId}
+                  status={task.status}
+                />
+              );
+            })}
+            <Button
+              onClick={handleCompletedNewTaskClick}
+              variant="outline"
+              className="flex h-10 w-full"
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span className="pl-2">New Task</span>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

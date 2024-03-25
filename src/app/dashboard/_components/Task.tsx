@@ -27,17 +27,21 @@ import { Form, FormControl, FormField, FormItem } from "~/components/ui/form";
 import { useContext } from "react";
 import { DashboardContext } from "../_context/DashboardContext";
 import { api } from "~/trpc/react";
+import { Textarea } from "~/components/ui/card-textarea";
 
 type TaskProps = {
   id: string;
   name: string;
+  notes: string;
   priority?: "LOW" | "MEDIUM" | "HIGH";
   due?: Date;
   projectId?: string;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
 };
 
 const taskSchema = z.object({
   name: z.string(),
+  notes: z.string(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   project: z.string().optional(),
   due: z.date().optional(),
@@ -46,23 +50,27 @@ const taskSchema = z.object({
 export default function Task({
   id,
   name,
+  notes,
   priority,
   due,
   projectId,
+  status,
 }: TaskProps) {
   const { dashboard, dispatch } = useContext(DashboardContext)!;
+
   const { projects } = dashboard;
   const taskForm = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
       name: name ? name : "",
+      notes: notes ? notes : "",
       priority: priority ? priority : undefined,
       due: due ? due : undefined,
       project: projectId
         ? projects.find((project) => project.id === projectId)?.id
         : undefined,
     },
-    mode: "onBlur",
+    mode: "onBlur", // Makes it call updateTask when the form goes out of focus
   });
   const updateTask = api.task.update.useMutation().mutate;
 
@@ -72,15 +80,18 @@ export default function Task({
       payload: {
         id,
         name: data.name,
+        notes: data.notes,
         priority: data.priority,
         projectId: data.project,
         due: data.due,
+        status,
       },
     });
 
     updateTask({
       id,
       name: data.name,
+      notes: data.notes,
       priority: data.priority,
       due: data.due,
       projectId: data.project,
@@ -88,12 +99,11 @@ export default function Task({
   };
 
   return (
-    <Card className="mb-4 w-72">
+    <Card className="mb-4 w-full">
       <CardContent>
         <Form {...taskForm}>
           <form onBlur={taskForm.handleSubmit(handleTaskSubmit)}>
             <div className="flex w-full flex-col py-4">
-              {/* To-do: Add state then on input, change the font from gray to black*/}
               {/* Name input */}
               <FormField
                 control={taskForm.control}
@@ -102,11 +112,30 @@ export default function Task({
                   return (
                     <FormItem>
                       <FormControl>
-                        <Input
+                        <Textarea
                           {...field}
                           id="name"
                           placeholder="Type a name..."
-                          className="text-md mb-4 border-none font-semibold outline-none hover:bg-gray-100 focus-visible:ring-transparent"
+                          className="mb-4 resize-none overflow-hidden break-words border-none text-lg font-semibold outline-none focus-visible:ring-transparent"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
+              />
+              {/* Notes input */}
+              <FormField
+                control={taskForm.control}
+                name="notes"
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          id="notes"
+                          placeholder="Type a description..."
+                          className="font-md mb-4 resize-none overflow-hidden break-words border-none text-sm text-muted-foreground outline-none focus-visible:ring-transparent"
                         />
                       </FormControl>
                     </FormItem>
@@ -128,65 +157,24 @@ export default function Task({
                           id="priority"
                           className={`mb-4 border-none ${!field.value && "text-muted-foreground"}  hover:bg-gray-100 focus:ring-transparent`}
                         >
-                          {/*To-do: Change font color to text-gray-400 when I setup state */}
                           <SelectValue placeholder="Add Priority" />
                         </SelectTrigger>
                         <SelectContent className="">
                           <SelectItem value="HIGH">
-                            <div className="h-6 w-10 rounded-sm bg-red-200 pl-1">
+                            <div className="h-6 w-10 rounded-xl bg-red-200 pl-1">
                               High
                             </div>
                           </SelectItem>
                           <SelectItem value="MEDIUM">
-                            <div className="h-6 w-16 rounded-sm bg-amber-100 pl-1">
+                            <div className="h-6 w-16 rounded-xl bg-amber-100 pl-1">
                               Medium
                             </div>
                           </SelectItem>
                           <SelectItem value="LOW">
-                            <div className="h-6 w-10 rounded-sm bg-green-100 pl-1">
+                            <div className="h-6 w-10 rounded-xl bg-green-100 pl-1">
                               Low
                             </div>
                           </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  );
-                }}
-              />
-              {/* Project select */}
-              <FormField
-                control={taskForm.control}
-                name="project"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <Select
-                        defaultValue={field.value ? field.value : undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger
-                          id="project"
-                          className={`mb-4 border-none ${!field.value && "text-muted-foreground"} hover:bg-gray-100 focus:ring-transparent`}
-                        >
-                          <SelectValue placeholder="Add Project" />
-                        </SelectTrigger>
-                        <SelectContent className="">
-                          <SelectGroup>
-                            {projects.length > 0 ? (
-                              projects.map((project) => {
-                                return (
-                                  <SelectItem
-                                    key={project.id}
-                                    value={project.id}
-                                  >
-                                    {project.name}
-                                  </SelectItem>
-                                );
-                              })
-                            ) : (
-                              <SelectLabel>No projects found.</SelectLabel>
-                            )}
-                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     </FormItem>
@@ -229,6 +217,46 @@ export default function Task({
                           />
                         </PopoverContent>
                       </Popover>
+                    </FormItem>
+                  );
+                }}
+              />
+              {/* Project select */}
+              <FormField
+                control={taskForm.control}
+                name="project"
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <Select
+                        defaultValue={field.value ? field.value : undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger
+                          id="project"
+                          className={`border-none font-semibold ${!field.value && "text-muted-foreground"} hover:bg-gray-100 focus:ring-transparent`}
+                        >
+                          <SelectValue placeholder="Add Project" />
+                        </SelectTrigger>
+                        <SelectContent className="">
+                          <SelectGroup>
+                            {projects.length > 0 ? (
+                              projects.map((project) => {
+                                return (
+                                  <SelectItem
+                                    key={project.id}
+                                    value={project.id}
+                                  >
+                                    {project.name}
+                                  </SelectItem>
+                                );
+                              })
+                            ) : (
+                              <SelectLabel>No projects found.</SelectLabel>
+                            )}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </FormItem>
                   );
                 }}

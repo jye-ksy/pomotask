@@ -74,23 +74,24 @@ export const taskRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         name: z.string(),
+        notes: z.string(),
         due: z.date().optional(),
         priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
         projectId: z.string().optional(),
       }),
     )
     .mutation(
-      async ({ ctx, input: { id, name, due, priority, projectId } }) => {
+      async ({ ctx, input: { id, name, notes, due, priority, projectId } }) => {
         const task = await ctx.db.task.update({
           where: { id },
           data: {
             name,
+            notes,
             due,
             priority,
             projectId,
           },
         });
-        console.log("db updated", task);
 
         return task;
       },
