@@ -18,7 +18,12 @@ import { format } from "date-fns";
 import { Calendar } from "~/components/ui/calendar";
 import { SelectGroup, SelectLabel } from "~/components/ui/select";
 import { Button } from "~/components/ui/button";
-import { AlarmClockIcon, CalendarIcon, TrashIcon } from "lucide-react";
+import {
+  AlarmClockIcon,
+  CalendarIcon,
+  ChevronDownCircleIcon,
+  TrashIcon,
+} from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +33,7 @@ import { DashboardContext } from "../_context/DashboardContext";
 import { api } from "~/trpc/react";
 import { Textarea } from "~/components/ui/card-textarea";
 import { useRouter } from "next/navigation";
+import { SelectIcon } from "@radix-ui/react-select";
 
 type TaskProps = {
   id: string;
@@ -131,7 +137,7 @@ export default function Task({
                           {...field}
                           id="name"
                           placeholder="Type a name..."
-                          className="mb-4 resize-none overflow-hidden break-words border-none text-lg font-semibold outline-none focus-visible:ring-transparent"
+                          className="mb-4 resize-none overflow-hidden break-words border-none text-lg font-bold outline-none focus-visible:ring-transparent"
                         />
                       </FormControl>
                     </FormItem>
@@ -150,48 +156,9 @@ export default function Task({
                           {...field}
                           id="notes"
                           placeholder="Type a description..."
-                          className="font-md mb-4 resize-none overflow-hidden break-words border-none text-sm text-muted-foreground outline-none focus-visible:ring-transparent"
+                          className={`font-md mb-4 resize-none overflow-hidden break-words border-none text-sm ${!field.value && "text-muted-foreground"} outline-none focus-visible:ring-transparent`}
                         />
                       </FormControl>
-                    </FormItem>
-                  );
-                }}
-              />
-              {/* Priority select */}
-              <FormField
-                control={taskForm.control}
-                name="priority"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <Select
-                        defaultValue={field.value ? field.value : undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger
-                          id="priority"
-                          className={`mb-4 border-none ${!field.value && "text-muted-foreground"}  hover:bg-gray-100 focus:ring-transparent`}
-                        >
-                          <SelectValue placeholder="Add Priority" />
-                        </SelectTrigger>
-                        <SelectContent className="">
-                          <SelectItem value="HIGH">
-                            <div className="h-6 w-10 rounded-xl bg-red-200 pl-1">
-                              High
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="MEDIUM">
-                            <div className="h-6 w-16 rounded-xl bg-amber-100 pl-1">
-                              Medium
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="LOW">
-                            <div className="h-6 w-10 rounded-xl bg-green-100 pl-1">
-                              Low
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
                     </FormItem>
                   );
                 }}
@@ -236,6 +203,55 @@ export default function Task({
                   );
                 }}
               />
+              {/* Priority select */}
+              <FormField
+                control={taskForm.control}
+                name="priority"
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <Select
+                        defaultValue={field.value ? field.value : undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger
+                          id="priority"
+                          className={`mb-4 flex justify-start border-none ${!field.value && "text-muted-foreground"}  hover:bg-gray-100 focus:ring-transparent`}
+                        >
+                          {!field.value ? (
+                            <SelectIcon>
+                              <ChevronDownCircleIcon className="ml-1 mr-2 h-4 w-4" />
+                            </SelectIcon>
+                          ) : null}
+
+                          <SelectValue
+                            placeholder="Add Priority"
+                            className="border-4 border-red-100"
+                          />
+                        </SelectTrigger>
+                        <SelectContent className="">
+                          <SelectItem value="HIGH">
+                            <div className="h-6 w-10 rounded-xl bg-red-200 pl-1">
+                              High
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="MEDIUM">
+                            <div className="h-6 w-16 rounded-xl bg-amber-100 pl-1">
+                              Medium
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="LOW">
+                            <div className="h-6 w-10 rounded-xl bg-green-100 pl-1">
+                              Low
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  );
+                }}
+              />
+
               {/* Project select */}
               <FormField
                 control={taskForm.control}
@@ -249,8 +265,13 @@ export default function Task({
                       >
                         <SelectTrigger
                           id="project"
-                          className={`border-none font-semibold ${!field.value && "text-muted-foreground"} hover:bg-gray-100 focus:ring-transparent`}
+                          className={`flex justify-start border-none font-semibold ${!field.value && "text-muted-foreground"} hover:bg-gray-100 focus:ring-transparent`}
                         >
+                          {!field.value ? (
+                            <SelectIcon>
+                              <ChevronDownCircleIcon className="ml-1 mr-2 h-4 w-4" />
+                            </SelectIcon>
+                          ) : null}
                           <SelectValue placeholder="Add Project" />
                         </SelectTrigger>
                         <SelectContent className="">
