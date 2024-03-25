@@ -7,7 +7,7 @@ export async function Navbar() {
   return (
     <nav className="z-2 flex h-16 items-center justify-center gap-4  px-8 lg:gap-8">
       <div className="mt-1 flex w-full max-w-7xl items-center border-b px-1 py-4">
-        <Link className="text-lg font-medium" href="">
+        <Link className="text-lg font-medium" href="/dashboard">
           Pomotask
         </Link>
         <div className="ml-auto flex items-center gap-4">
