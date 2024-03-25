@@ -73,7 +73,7 @@ model Pomodoro {
   totalFocusTime     Int       @default(0)
   totalRestTime      Int       @default(0)
   pomodorosCompleted Int       @default(0)
-  task               Task      @relation(fields: [taskId], references: [id])
+  task               Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
   taskId             String    @unique
 
   @@index([taskId])
