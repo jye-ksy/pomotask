@@ -72,6 +72,7 @@
     "prettier": "^3.1.0",
     "prettier-plugin-tailwindcss": "^0.5.7",
     "prisma": "^5.6.0",
+    "react-merge-refs": "^2.1.1",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.1.6"
   },
