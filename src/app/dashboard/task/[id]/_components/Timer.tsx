@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
-import { updateTimerStateAction } from "~/app/timer/_actions/action";
 import { api } from "~/trpc/react";
 import { Card } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
@@ -18,6 +17,7 @@ import TimerSettings from "./TimerSettings";
 import TimerTabs from "./TimerTabs";
 import { PomodoroContext } from "../_context/PomodoroContext";
 import { useCountdown } from "../_hooks/useCountdown";
+import { updateTimerStateAction } from "../_actions/action";
 
 export default function Timer() {
   // Context state

@@ -1,16 +1,17 @@
 import { api } from "~/trpc/server";
 import Pomodoro from "./_components/Pomodoro";
+import { minutesToSeconds } from "~/lib/utils";
 
-export default async function Page() {
+export default async function Page({ params }: { params: { id: string } }) {
   let pomodoro = await api.pomodoro.getPomodoro.query({
-    taskId: "cf53547c-ea99-485e-b03e-2200830f5ba4", // To-do: Replace the hardcoded taskId by getting the id from the url
+    taskId: params.id,
   });
 
   if (!pomodoro) {
     pomodoro = await api.pomodoro.createPomodoro.mutate({
-      taskId: "cf53547c-ea99-485e-b03e-2200830f5ba4", // To-do: Replace the hardcoded taskId by getting the id from the url
-      focusLength: 120,
-      restLength: 60,
+      taskId: params.id,
+      focusLength: minutesToSeconds(25),
+      restLength: minutesToSeconds(5),
     });
   }
 

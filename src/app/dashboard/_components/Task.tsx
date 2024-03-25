@@ -18,7 +18,7 @@ import { format } from "date-fns";
 import { Calendar } from "~/components/ui/calendar";
 import { SelectGroup, SelectLabel } from "~/components/ui/select";
 import { Button } from "~/components/ui/button";
-import { CalendarIcon, TrashIcon } from "lucide-react";
+import { AlarmClockIcon, CalendarIcon, TrashIcon } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +27,7 @@ import { useContext } from "react";
 import { DashboardContext } from "../_context/DashboardContext";
 import { api } from "~/trpc/react";
 import { Textarea } from "~/components/ui/card-textarea";
+import { useRouter } from "next/navigation";
 
 type TaskProps = {
   id: string;
@@ -57,6 +58,7 @@ export default function Task({
 }: TaskProps) {
   const { dashboard, dispatch } = useContext(DashboardContext)!;
   const { projects } = dashboard;
+  const router = useRouter();
   const taskForm = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -105,6 +107,10 @@ export default function Task({
       },
     });
     deleteTask({ id });
+  };
+
+  const handlePomodoro = () => {
+    router.push(`/dashboard/task/${id}`);
   };
 
   return (
@@ -270,16 +276,26 @@ export default function Task({
                   );
                 }}
               />
-              {/* Delete button */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="-mb-4 self-end"
-                onClick={() => handleDelete()}
-              >
-                <TrashIcon className="h-4 w-4 " />
-              </Button>
+              <div className="-mb-4 flex self-end">
+                {/* Delete button */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDelete()}
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </Button>
+                {/* Pomodoro button */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handlePomodoro()}
+                >
+                  <AlarmClockIcon className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </form>
         </Form>
