@@ -14,10 +14,26 @@ datasource db {
   relationMode = "prisma"
 }
 
+model Project {
+  id             String   @id @default(uuid())
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  completeByDate DateTime
+  completed      Boolean  @default(false)
+  tasksId        String?
+  userId         String
+  tasks          Task[]
+  user           User     @relation(fields: [userId], references: [id])
+
+  @@index([tasksId])
+  @@index([userId])
+}
+
 model Task {
   id        String    @id @default(uuid())
   name      String
-  priority  Priority  @default(LOW)
+  priority  Priority?
   createdAt DateTime  @default(now())
   due       DateTime?
   updatedAt DateTime  @updatedAt
@@ -61,22 +77,6 @@ model Pomodoro {
   taskId             String    @unique
 
   @@index([taskId])
-}
-
-model Project {
-  id             String   @id @default(uuid())
-  name           String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  completeByDate DateTime
-  completed      Boolean  @default(false)
-  tasksId        String?
-  userId         String
-  tasks          Task[]
-  user           User     @relation(fields: [userId], references: [id])
-
-  @@index([tasksId])
-  @@index([userId])
 }
 
 model User {
