@@ -6,23 +6,23 @@ export const taskRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        name: z.string().min(2).max(250, {
-          message: "Project needs a name",
-        }),
+        id: z.string().uuid(),
+        name: z.string(),
         status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETE"]),
         due: z.date().optional(),
-        priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+        priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
         notes: z.string().optional(),
-        projectId: z.string(),
+        projectId: z.string().optional(),
       }),
     )
     .mutation(
       async ({
         ctx,
-        input: { name, due, status, priority, notes, projectId },
+        input: { id, name, due, status, priority, notes, projectId },
       }) => {
         let task = await ctx.db.task.create({
           data: {
+            id,
             status,
             name,
             priority,
@@ -69,11 +69,39 @@ export const taskRouter = createTRPCRouter({
         return task;
       },
     ),
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        name: z.string(),
+        due: z.date().optional(),
+        priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+        projectId: z.string().optional(),
+      }),
+    )
+    .mutation(
+      async ({ ctx, input: { id, name, due, priority, projectId } }) => {
+        const task = await ctx.db.task.update({
+          where: { id },
+          data: {
+            name,
+            due,
+            priority,
+            projectId,
+          },
+        });
+        console.log("db updated", task);
 
+        return task;
+      },
+    ),
   getAllUserTasks: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.task.findMany({
       where: {
         userId: ctx.userId,
+      },
+      orderBy: {
+        createdAt: "asc",
       },
     });
   }),
