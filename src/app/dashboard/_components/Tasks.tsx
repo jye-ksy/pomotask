@@ -1,163 +1,123 @@
 "use client";
 
 import { useContext } from "react";
+import { DragEndEvent, DndContext, closestCorners } from "@dnd-kit/core"
 import { DashboardContext } from "../_context/DashboardContext";
-import { Button } from "~/components/ui/button";
-import { PlusIcon } from "lucide-react";
-import Task from "./Task";
 import { api } from "~/trpc/react";
 import { v4 as uuid } from "uuid";
+import TaskColumns from "./TasksColumn";
 
 export default function Tasks() {
   const { dashboard, dispatch } = useContext(DashboardContext)!;
   const { tasks } = dashboard;
   const createTask = api.task.create.useMutation().mutate;
+  const updateTask = api.task.update.useMutation().mutate;
+
 
   // Filter the tasks based on their status
   const notStartedTasks = tasks.filter((task) => task.status === "NOT_STARTED");
   const inProgressTasks = tasks.filter((task) => task.status === "IN_PROGRESS");
   const completedTasks = tasks.filter((task) => task.status === "COMPLETE");
 
-  const handleNotStartedNewTaskClick = () => {
+
+  const handleAddNewTask = (status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE") => {
     const newTaskId = uuid();
     dispatch({
       type: "create-task",
-      payload: { id: newTaskId, status: "NOT_STARTED" },
-    });
+      payload: {
+        id: newTaskId, 
+        status
+      }
+    })
 
     createTask({
       id: newTaskId,
       name: "",
-      status: "NOT_STARTED",
+      status,
     });
-  };
+  }
 
-  const handleInProgressNewTaskClick = () => {
-    const newTaskId = uuid();
-    dispatch({
-      type: "create-task",
-      payload: { id: newTaskId, status: "IN_PROGRESS" },
-    });
+  //Helper function to get task object to update
+  const findTaskById = (id: string, parentContainer: string) => {
+    const tasks = parentContainer === 'Not Started' ? notStartedTasks : parentContainer === "In Progress" ? inProgressTasks : completedTasks;
+    return tasks.find(task => task.id === id)
+  }
 
-    createTask({
-      id: newTaskId,
-      name: "",
-      status: "IN_PROGRESS",
-    });
-  };
 
-  const handleCompletedNewTaskClick = () => {
-    const newTaskId = uuid();
-    dispatch({
-      type: "create-task",
-      payload: { id: newTaskId, status: "COMPLETE" },
-    });
+  const handleDragEnd = (event: DragEndEvent) => {
+    //Need to use active and over to compare positioning between two elements
+    const { active, over } = event;
+    //container is destination container
+    const container = over?.id;
+    const id = active.data.current?.id ?? "" ;
+    const name = active.data.current?.name ?? "";
+    const index = active.data.current?.index ?? "";
+    //parent is where the task is moved from
+    const parent = active.data.current?.parent ?? "Not Started";
 
-    createTask({
-      id: newTaskId,
-      name: "",
-      status: "COMPLETE",
-    });
-  };
+    console.log('Task ID:', id)
+    console.log("Parent Container", parent)
+    console.log("Destination Container", container)
+    //Update new container with moved item
+
+    const task = findTaskById(id, parent)
+    const status = container === 'Not Started' ? "NOT_STARTED" : 
+                   container === "In Progress"? "IN_PROGRESS" : "COMPLETE";
+      
+    if (task) {
+      dispatch({
+        type: "update-task",
+        payload: {
+          id: task.id,
+          name: task.name,
+          notes: task.notes,
+          priority: task.priority,
+          due: task.due,
+          projectId: task.projectId,
+          status
+        }
+      });
+  
+      updateTask({
+        ...task,
+        status
+      })
+    }
+  }
+
+
 
   return (
     <div className="mx-8  flex flex-col items-center lg:mx-14">
-      <div className="flex w-full max-w-7xl justify-center  md:justify-start">
-        <h1 className="mb-12 mt-12 flex justify-center text-3xl font-bold">
-          My Task List
-        </h1>
-      </div>
-      <div className="border-purple flex w-full flex-col  items-center md:flex-row md:items-start md:justify-center ">
-        <div className="flex w-56 max-w-7xl flex-col  md:w-full md:flex-row md:justify-between md:gap-4">
-          <div className="md:min-w-auto mb-8 flex min-w-56 flex-col">
-            <span className="mb-4 w-28 rounded-xl bg-gray-100 pl-3 text-base font-semibold">
-              Not Started
-            </span>
-            <div>
-              {notStartedTasks?.map((task) => {
-                return (
-                  <Task
-                    key={task.id}
-                    id={task.id}
-                    name={task.name}
-                    notes={task.notes}
-                    priority={task.priority}
-                    due={task.due}
-                    projectId={task.projectId}
-                    status={task.status}
-                  />
-                );
-              })}
-              <Button
-                onClick={handleNotStartedNewTaskClick}
-                variant="outline"
-                className="flex h-10 w-full"
-              >
-                <PlusIcon className="h-4 w-4" />
-                <span className="pl-2">New Task</span>
-              </Button>
+      <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
+        <div className="flex w-full max-w-7xl justify-center  md:justify-start">
+          <h1 className="mb-12 mt-12 flex justify-center text-3xl font-bold">
+            My Task List
+          </h1>
+        </div>
+        <div className="border-purple flex w-full flex-col  items-center md:flex-row md:items-start md:justify-center ">
+          <div className="flex w-56 max-w-7xl flex-col  md:w-full md:flex-row md:justify-between md:gap-4">
+            <div className="md:min-w-auto mb-8 flex min-w-56 flex-col">
+              <span className="mb-4 w-28 rounded-xl bg-gray-100 pl-3 text-base font-semibold">
+                Not Started
+              </span>
+              <TaskColumns title="Not Started" tasks={notStartedTasks} handleAddNewTask={handleAddNewTask}/>
             </div>
-          </div>
-          <div className="md:min-w-auto mb-8 flex min-w-56 flex-col">
-            <span className="mb-4 w-28 rounded-xl  bg-amber-100 pl-3 text-base font-semibold">
-              In Progress
-            </span>
-            <div>
-              {inProgressTasks?.map((task) => {
-                return (
-                  <Task
-                    key={task.id}
-                    id={task.id}
-                    name={task.name}
-                    notes={task.notes}
-                    priority={task.priority}
-                    due={task.due}
-                    projectId={task.projectId}
-                    status={task.status}
-                  />
-                );
-              })}
-              <Button
-                onClick={handleInProgressNewTaskClick}
-                variant="outline"
-                className="flex h-10 w-full"
-              >
-                <PlusIcon className="h-4 w-4" />
-                <span className="pl-2">New Task</span>
-              </Button>
+            <div className="md:min-w-auto mb-8 flex min-w-56 flex-col">
+              <span className="mb-4 w-28 rounded-xl  bg-amber-100 pl-3 text-base font-semibold">
+                In Progress
+              </span>
+              <TaskColumns title="In Progress" tasks={inProgressTasks} handleAddNewTask={handleAddNewTask}/>
             </div>
-          </div>
-          <div className="md:min-w-auto mb-8 flex min-w-56 flex-col">
-            <span className="mb-4 w-28 rounded-xl bg-green-100 pl-3 text-base font-semibold">
-              Completed
-            </span>
-            <div>
-              {completedTasks?.map((task) => {
-                return (
-                  <Task
-                    key={task.id}
-                    id={task.id}
-                    name={task.name}
-                    notes={task.notes}
-                    priority={task.priority}
-                    due={task.due}
-                    projectId={task.projectId}
-                    status={task.status}
-                  />
-                );
-              })}
-              <Button
-                onClick={handleCompletedNewTaskClick}
-                variant="outline"
-                className="flex h-10 w-full"
-              >
-                <PlusIcon className="h-4 w-4" />
-                <span className="pl-2">New Task</span>
-              </Button>
+            <div className="md:min-w-auto mb-8 flex min-w-56 flex-col">
+              <span className="mb-4 w-28 rounded-xl bg-green-100 pl-3 text-base font-semibold">
+                Completed
+              </span>
+              <TaskColumns title="Completed" tasks={completedTasks} handleAddNewTask={handleAddNewTask}/>
             </div>
           </div>
         </div>
-      </div>
+      </DndContext>
     </div>
   );
 }

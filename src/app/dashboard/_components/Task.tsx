@@ -1,5 +1,6 @@
 "use client";
 import { Card, CardContent } from "~/components/ui/card";
+import { useDraggable } from "@dnd-kit/core";
 
 import {
   Select,
@@ -34,6 +35,8 @@ import { api } from "~/trpc/react";
 import { Textarea } from "~/components/ui/card-textarea";
 import { useRouter } from "next/navigation";
 import { SelectIcon } from "@radix-ui/react-select";
+import { GripVertical } from "lucide-react";
+
 
 type TaskProps = {
   id: string;
@@ -43,6 +46,8 @@ type TaskProps = {
   due?: Date;
   projectId?: string;
   status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
+  index: number;
+  parent: string;
 };
 
 const taskSchema = z.object({
@@ -61,10 +66,26 @@ export default function Task({
   due,
   projectId,
   status,
+  index,
+  parent
 }: TaskProps) {
   const { dashboard, dispatch } = useContext(DashboardContext)!;
   const { projects } = dashboard;
   const router = useRouter();
+  const { attributes, listeners, setNodeRef, transform} = useDraggable({
+    id: name,
+    data: {
+        id,
+        name, 
+        index, 
+        parent
+    }
+  })
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+  } : undefined;
+
   const taskForm = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -102,6 +123,7 @@ export default function Task({
       priority: data.priority,
       due: data.due,
       projectId: data.project,
+      status
     });
   };
 
@@ -120,207 +142,218 @@ export default function Task({
   };
 
   return (
-    <Card className="mb-4 w-full">
-      <CardContent>
-        <Form {...taskForm}>
-          <form onBlur={taskForm.handleSubmit(handleTaskSubmit)}>
-            <div className="flex w-full flex-col pt-2">
-              {/* Name input */}
-              <FormField
-                control={taskForm.control}
-                name="name"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          id="name"
-                          placeholder="Type a name..."
-                          className="mb-4 resize-none overflow-hidden break-words border-none text-lg font-bold outline-none focus-visible:ring-transparent"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  );
-                }}
-              />
-              {/* Notes input */}
-              <FormField
-                control={taskForm.control}
-                name="notes"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          id="notes"
-                          placeholder="Type a description..."
-                          className={`font-md mb-4 resize-none overflow-hidden break-words border-none text-sm ${!field.value && "text-muted-foreground"} outline-none focus-visible:ring-transparent`}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  );
-                }}
-              />
-              {/* Due Date Picker */}
-              {/* To-do: Add a way to clear the date*/}
-              <FormField
-                control={taskForm.control}
-                name="due"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <Popover>
-                        <PopoverTrigger asChild>
+      <Card className="mb-4 w-full" style={style} ref={setNodeRef}>
+        <CardContent>
+          <Form {...taskForm}>
+            <form onBlur={taskForm.handleSubmit(handleTaskSubmit)}>
+              <div className="flex w-full flex-col pt-2">
+                {/* Name input */}
+                <div className="w-full flex items-center">
+                  <FormField
+                    control={taskForm.control}
+                    name="name"
+                    render={({ field }) => {
+                      return (
+                        <FormItem>
                           <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "mb-4 w-full justify-start border-none text-left font-normal hover:bg-gray-100",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Add Due Date</span>
-                              )}
-                            </Button>
+                            <Textarea
+                              {...field}
+                              id="name"
+                              placeholder="Type a name..."
+                              className="resize-none overflow-hidden break-words border-none text-lg font-bold outline-none focus-visible:ring-transparent"
+                            />
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </FormItem>
-                  );
-                }}
-              />
-              {/* Priority select */}
-              <FormField
-                control={taskForm.control}
-                name="priority"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <Select
-                        defaultValue={field.value ? field.value : undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger
-                          id="priority"
-                          className={`mb-4 flex justify-start border-none ${!field.value && "text-muted-foreground"}  hover:bg-gray-100 focus:ring-transparent`}
-                        >
-                          {!field.value ? (
-                            <SelectIcon>
-                              <ChevronDownCircleIcon className="ml-1 mr-2 h-4 w-4" />
-                            </SelectIcon>
-                          ) : null}
+                        </FormItem>
+                      );
+                    }}
+                  />
+                  <Button
+                    variant={"ghost"}
+                    {...attributes}
+                    {...listeners}
+                    className=" p-1 text-primary/50 -ml-2 h-auto cursor-grab relative"
+                  >
+                    <GripVertical />
+                  </Button>
+                </div>
 
-                          <SelectValue
-                            placeholder="Add Priority"
-                            className="border-4 border-red-100"
+                {/* Notes input */}
+                <FormField
+                  control={taskForm.control}
+                  name="notes"
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            id="notes"
+                            placeholder="Type a description..."
+                            className={`font-md mb-4 resize-none overflow-hidden break-words border-none text-sm ${!field.value && "text-muted-foreground"} outline-none focus-visible:ring-transparent`}
                           />
-                        </SelectTrigger>
-                        <SelectContent className="">
-                          <SelectItem value="HIGH">
-                            <div className="h-6 w-10 rounded-xl bg-red-200 pl-1">
-                              High
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="MEDIUM">
-                            <div className="h-6 w-16 rounded-xl bg-amber-100 pl-1">
-                              Medium
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="LOW">
-                            <div className="h-6 w-10 rounded-xl bg-green-100 pl-1">
-                              Low
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  );
-                }}
-              />
-
-              {/* Project select */}
-              <FormField
-                control={taskForm.control}
-                name="project"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <Select
-                        defaultValue={field.value ? field.value : undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger
-                          id="project"
-                          className={`flex justify-start border-none font-semibold ${!field.value && "text-muted-foreground"} hover:bg-gray-100 focus:ring-transparent`}
+                        </FormControl>
+                      </FormItem>
+                    );
+                  }}
+                />
+                {/* Due Date Picker */}
+                {/* To-do: Add a way to clear the date*/}
+                <FormField
+                  control={taskForm.control}
+                  name="due"
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "mb-4 w-full justify-start border-none text-left font-normal hover:bg-gray-100",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Add Due Date</span>
+                                )}
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </FormItem>
+                    );
+                  }}
+                />
+                {/* Priority select */}
+                <FormField
+                  control={taskForm.control}
+                  name="priority"
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <Select
+                          defaultValue={field.value ? field.value : undefined}
+                          onValueChange={field.onChange}
                         >
-                          {!field.value ? (
-                            <SelectIcon>
-                              <ChevronDownCircleIcon className="ml-1 mr-2 h-4 w-4" />
-                            </SelectIcon>
-                          ) : null}
-                          <SelectValue placeholder="Add Project" />
-                        </SelectTrigger>
-                        <SelectContent className="">
-                          <SelectGroup>
-                            {projects.length > 0 ? (
-                              projects.map((project) => {
-                                return (
-                                  <SelectItem
-                                    key={project.id}
-                                    value={project.id}
-                                  >
-                                    {project.name}
-                                  </SelectItem>
-                                );
-                              })
-                            ) : (
-                              <SelectLabel>No projects found.</SelectLabel>
-                            )}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  );
-                }}
-              />
-              <div className="-mb-4 flex self-end">
-                {/* Delete button */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete()}
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </Button>
-                {/* Pomodoro button */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handlePomodoro()}
-                >
-                  <AlarmClockIcon className="h-4 w-4" />
-                </Button>
+                          <SelectTrigger
+                            id="priority"
+                            className={`mb-4 flex justify-start border-none ${!field.value && "text-muted-foreground"}  hover:bg-gray-100 focus:ring-transparent`}
+                          >
+                            {!field.value ? (
+                              <SelectIcon>
+                                <ChevronDownCircleIcon className="ml-1 mr-2 h-4 w-4" />
+                              </SelectIcon>
+                            ) : null}
+
+                            <SelectValue
+                              placeholder="Add Priority"
+                              className="border-4 border-red-100"
+                            />
+                          </SelectTrigger>
+                          <SelectContent className="">
+                            <SelectItem value="HIGH">
+                              <div className="rounded-xl bg-red-200 px-4 py-[1px]">
+                                High
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="MEDIUM">
+                              <div className="rounded-xl bg-amber-100 px-4 py-[1px]">
+                                Medium
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="LOW">
+                              <div className="rounded-xl bg-green-100 px-4 py-[1px]">
+                                Low
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    );
+                  }}
+                />
+
+                {/* Project select */}
+                <FormField
+                  control={taskForm.control}
+                  name="project"
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <Select
+                          defaultValue={field.value ? field.value : undefined}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger
+                            id="project"
+                            className={`flex justify-start border-none font-semibold ${!field.value && "text-muted-foreground"} hover:bg-gray-100 focus:ring-transparent`}
+                          >
+                            {!field.value ? (
+                              <SelectIcon>
+                                <ChevronDownCircleIcon className="ml-1 mr-2 h-4 w-4" />
+                              </SelectIcon>
+                            ) : null}
+                            <SelectValue placeholder="Add Project" />
+                          </SelectTrigger>
+                          <SelectContent className="">
+                            <SelectGroup>
+                              {projects.length > 0 ? (
+                                projects.map((project) => {
+                                  return (
+                                    <SelectItem
+                                      key={project.id}
+                                      value={project.id}
+                                    >
+                                      {project.name}
+                                    </SelectItem>
+                                  );
+                                })
+                              ) : (
+                                <SelectLabel>No projects found.</SelectLabel>
+                              )}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    );
+                  }}
+                />
+                <div className="-mb-4 flex self-end">
+                  {/* Delete button */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete()}
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </Button>
+                  {/* Pomodoro button */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handlePomodoro()}
+                  >
+                    <AlarmClockIcon className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
   );
 }

@@ -12,7 +12,7 @@ interface ProjectState {
   tasksId: string | null;
 }
 
-interface TaskState {
+export interface TaskState {
   id: string;
   name: string;
   priority?: "LOW" | "MEDIUM" | "HIGH";
@@ -42,7 +42,7 @@ export type DashboardAction =
       payload: {
         id: string;
         name: string;
-        priority: "LOW" | "MEDIUM" | "HIGH";
+        priority: "LOW" | "MEDIUM" | "HIGH" | undefined;
         projectId: string | undefined;
         notes: string;
         due?: Date | undefined;
