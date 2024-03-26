@@ -15,18 +15,17 @@ datasource db {
 }
 
 model Project {
-  id             String   @id @default(uuid())
-  name           String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  completeByDate DateTime
-  completed      Boolean  @default(false)
-  tasksId        String?
-  userId         String
-  tasks          Task[]
-  user           User     @relation(fields: [userId], references: [id])
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  status    Status    @default(NOT_STARTED)
+  due       DateTime?
+  completed Boolean   @default(false)
+  userId    String
+  tasks     Task[]
+  user      User      @relation(fields: [userId], references: [id])
 
-  @@index([tasksId])
   @@index([userId])
 }
 
