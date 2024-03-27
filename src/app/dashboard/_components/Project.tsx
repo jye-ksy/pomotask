@@ -13,9 +13,15 @@ import {
 } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { CalendarIcon, TrashIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  GripVertical,
+  LineChartIcon,
+  TrashIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "~/components/ui/calendar";
+import { api } from "~/trpc/react";
 
 type ProjectProps = {
   id: string;
@@ -31,8 +37,7 @@ const projectSchema = z.object({
 });
 
 export default function Project({ id, name, due, status }: ProjectProps) {
-  const { dashboard, dispatch } = useContext(DashboardContext)!;
-  const { projects } = dashboard;
+  const { dispatch } = useContext(DashboardContext)!;
 
   // const { attributes, listeners, setNodeRef, transform} = useDraggable({
   //   id: name,
@@ -57,16 +62,32 @@ export default function Project({ id, name, due, status }: ProjectProps) {
     mode: "onBlur", // Makes it call updateProject when the form goes out of focus
   });
 
-  const handleProjectSubmit = (data: z.infer<typeof projectSchema>) => {
-    console.log("project submitted");
-    // Dispatch update-project action
+  const updateProject = api.project.update.useMutation().mutate;
+  const deleteProject = api.project.delete.useMutation().mutate;
 
-    // Update project on db
+  const handleProjectSubmit = (data: z.infer<typeof projectSchema>) => {
+    dispatch({
+      type: "update-project",
+      payload: {
+        id,
+        name: data.name,
+        due: data.due,
+        status: status,
+      },
+    });
+
+    updateProject({ id, name: data.name, due: data.due, status: status });
   };
 
   const handleDelete = () => {
-    // dispatch delete project
-    // delete project on db
+    dispatch({
+      type: "delete-project",
+      payload: {
+        id,
+      },
+    });
+
+    deleteProject({ id });
   };
 
   return (
@@ -79,7 +100,7 @@ export default function Project({ id, name, due, status }: ProjectProps) {
         <Form {...projectForm}>
           <form onBlur={projectForm.handleSubmit(handleProjectSubmit)}>
             <div className="flex w-full flex-col pt-2">
-              <div className="flex w-full items-center">
+              <div className="mb-4 flex w-full items-center">
                 {/* Name input */}
                 <FormField
                   control={projectForm.control}
@@ -99,14 +120,15 @@ export default function Project({ id, name, due, status }: ProjectProps) {
                     );
                   }}
                 />
-                {/* <Button
+                <Button
+                  type="button"
                   variant={"ghost"}
-                  {...attributes}
-                  {...listeners}
+                  // {...attributes}
+                  // {...listeners}
                   className=" relative -ml-2 h-auto cursor-grab p-1 text-primary/50"
                 >
                   <GripVertical />
-                </Button> */}
+                </Button>
               </div>
               {/* Due Date Picker */}
               {/* To-do: Add a way to clear the date*/}
@@ -157,6 +179,15 @@ export default function Project({ id, name, due, status }: ProjectProps) {
                   onClick={() => handleDelete()}
                 >
                   <TrashIcon className="h-4 w-4" />
+                </Button>
+                {/* Stats button */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => null}
+                >
+                  <LineChartIcon className="h-4 w-4" />
                 </Button>
               </div>
             </div>

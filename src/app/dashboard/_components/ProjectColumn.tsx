@@ -34,7 +34,7 @@ export default function ProjectColumn({
           <Project
             key={project.id}
             id={project.id}
-            name={project.id}
+            name={project.name}
             due={project.due}
             status={project.status}
             index={index}

@@ -1,20 +1,22 @@
 "use client";
 
-import type { Project, Task } from "@prisma/client";
+import type { Task } from "@prisma/client";
 import { DashboardProvider } from "../_context/DashboardContext";
 import Tasks from "./Tasks";
+import Projects from "./Projects";
+import type { ProjectWithTasks } from "~/lib/types";
 
 export default function Dashboard({
   projects,
   tasks,
 }: {
-  projects: Project[];
+  projects: ProjectWithTasks[];
   tasks: Task[];
 }) {
   return (
     <DashboardProvider projects={projects} tasks={tasks}>
-      {/* To-Do: Re-implement this <Projects /> */}
       <Tasks />
+      <Projects />
     </DashboardProvider>
   );
 }
