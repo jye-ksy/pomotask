@@ -99,7 +99,7 @@ export default function Projects() {
   };
 
   return (
-    <div className="mx-8  flex flex-col items-center lg:mx-14">
+    <div className="mx-8 mb-12 flex flex-col items-center lg:mx-14">
       <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
         <div className="flex w-full max-w-7xl justify-center  md:justify-start">
           <h1 className="mb-12  flex justify-center text-3xl font-bold">
