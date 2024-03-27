@@ -1,26 +1,25 @@
 import { useDroppable } from "@dnd-kit/core";
+import type { ProjectState } from "../_context/DashboardContext";
 import { Button } from "~/components/ui/button";
 import { PlusIcon } from "lucide-react";
-import Task from "./Task";
-import type { TaskState } from "../_context/DashboardContext";
+import Project from "./Project";
 
-type TaskColumnsProps = {
+type ProjectColumnProps = {
   title: string;
-  tasks: TaskState[];
-  handleAddNewTask: (
+  projects: ProjectState[];
+  handleAddNewProject: (
     status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE",
   ) => void;
 };
 
-export default function TaskColumns({
+export default function ProjectColumn({
   title,
-  tasks,
-  handleAddNewTask,
-}: TaskColumnsProps) {
+  projects,
+  handleAddNewProject,
+}: ProjectColumnProps) {
   const { setNodeRef } = useDroppable({
     id: title,
   });
-
   const status =
     title === "Not Started"
       ? "NOT_STARTED"
@@ -30,29 +29,26 @@ export default function TaskColumns({
 
   return (
     <div ref={setNodeRef}>
-      {tasks?.map((task, index) => {
+      {projects?.map((project, index) => {
         return (
-          <Task
-            key={task.id}
-            id={task.id}
-            name={task.name}
-            notes={task.notes}
-            priority={task.priority}
-            due={task.due}
-            projectId={task.projectId}
-            status={task.status}
+          <Project
+            key={project.id}
+            id={project.id}
+            name={project.name}
+            due={project.due}
+            status={project.status}
             index={index}
             parent={title}
           />
         );
       })}
       <Button
-        onClick={() => handleAddNewTask(status)}
+        onClick={() => handleAddNewProject(status)}
         variant="outline"
         className="flex h-10 w-full"
       >
         <PlusIcon className="h-4 w-4" />
-        <span className="pl-2">New Task</span>
+        <span className="pl-2">New Project</span>
       </Button>
     </div>
   );
