@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { Calendar } from "~/components/ui/calendar";
 import { api } from "~/trpc/react";
 import { useDraggable } from "@dnd-kit/core";
+import { useRouter } from "next/navigation";
 
 type ProjectProps = {
   id: string;
@@ -47,7 +48,7 @@ export default function Project({
   parent,
 }: ProjectProps) {
   const { dispatch } = useContext(DashboardContext)!;
-
+  const router = useRouter();
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: name,
     data: {
@@ -99,6 +100,10 @@ export default function Project({
     });
 
     deleteProject({ id });
+  };
+
+  const handleProjectStats = () => {
+    router.push(`/project/${id}`);
   };
 
   return (
@@ -192,7 +197,7 @@ export default function Project({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => null}
+                  onClick={() => handleProjectStats()}
                 >
                   <LineChartIcon className="h-4 w-4" />
                 </Button>
