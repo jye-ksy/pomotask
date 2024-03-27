@@ -22,6 +22,7 @@ import {
 import { format } from "date-fns";
 import { Calendar } from "~/components/ui/calendar";
 import { api } from "~/trpc/react";
+import { useDraggable } from "@dnd-kit/core";
 
 type ProjectProps = {
   id: string;
@@ -29,6 +30,7 @@ type ProjectProps = {
   due?: Date;
   status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
   index: number;
+  parent: string;
 };
 
 const projectSchema = z.object({
@@ -36,22 +38,31 @@ const projectSchema = z.object({
   due: z.date().optional(),
 });
 
-export default function Project({ id, name, due, status }: ProjectProps) {
+export default function Project({
+  id,
+  name,
+  due,
+  status,
+  index,
+  parent,
+}: ProjectProps) {
   const { dispatch } = useContext(DashboardContext)!;
 
-  // const { attributes, listeners, setNodeRef, transform} = useDraggable({
-  //   id: name,
-  //   data: {
-  //       id,
-  //       name,
-  //       index,
-  //       parent
-  //   }
-  // })
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id: name,
+    data: {
+      id,
+      name,
+      index,
+      parent,
+    },
+  });
 
-  // const style = transform ? {
-  //   transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-  // } : undefined;
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined;
 
   const projectForm = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
@@ -91,11 +102,7 @@ export default function Project({ id, name, due, status }: ProjectProps) {
   };
 
   return (
-    <Card
-      className="mb-4 w-full"
-      // style={style}
-      // ref={setNodeRef}
-    >
+    <Card className="mb-4 w-full" style={style} ref={setNodeRef}>
       <CardContent>
         <Form {...projectForm}>
           <form onBlur={projectForm.handleSubmit(handleProjectSubmit)}>
@@ -123,8 +130,8 @@ export default function Project({ id, name, due, status }: ProjectProps) {
                 <Button
                   type="button"
                   variant={"ghost"}
-                  // {...attributes}
-                  // {...listeners}
+                  {...attributes}
+                  {...listeners}
                   className=" relative -ml-2 h-auto cursor-grab p-1 text-primary/50"
                 >
                   <GripVertical />

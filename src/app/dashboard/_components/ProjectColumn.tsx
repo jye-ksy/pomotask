@@ -38,6 +38,7 @@ export default function ProjectColumn({
             due={project.due}
             status={project.status}
             index={index}
+            parent={title}
           />
         );
       })}
