@@ -22,3 +22,15 @@ export function formatTime(seconds: number) {
       "0",
     )}:${(seconds % SECONDS_IN_MINUTE).toString().padStart(2, "0")}`;
 }
+
+export function convertSecondsToHMS(seconds: number) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (hours) {
+    return `${hours ? `${hours}h` : ""}${minutes ? `${minutes}m` : ""}`;
+  }
+
+  return `${minutes ? `${minutes}m` : ""}${remainingSeconds ? `${remainingSeconds}s` : ""}`;
+}
