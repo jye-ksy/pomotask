@@ -1,4 +1,3 @@
-import { CheckCircleIcon, CircleIcon, TimerIcon } from "lucide-react";
 import { Card } from "~/components/ui/card";
 import {
   Table,
@@ -27,22 +26,19 @@ export default async function ProjectPage({ params }: { params: paramsType }) {
     switch (status) {
       case "NOT_STARTED":
         return (
-          <div className="flex text-lg">
-            <CircleIcon className="mr-4 mt-[6px] h-[18px] w-[18px] text-muted-foreground" />
+          <div className="w-24 rounded-xl bg-gray-100 text-center text-base">
             Not Started
           </div>
         );
       case "IN_PROGRESS":
         return (
-          <div className="flex text-lg">
-            <TimerIcon className="mr-4 mt-1 h-[22px] w-[22px] text-muted-foreground" />
+          <div className="w-24 rounded-xl bg-amber-100  text-center text-base">
             In Progress
           </div>
         );
       case "COMPLETE":
         return (
-          <div className="flex text-lg">
-            <CheckCircleIcon className="mr-4 mt-[6px] h-[19px] w-[19px] text-muted-foreground" />
+          <div className="w-24 rounded-xl bg-green-100 text-center text-base">
             Completed
           </div>
         );
@@ -53,19 +49,19 @@ export default async function ProjectPage({ params }: { params: paramsType }) {
     switch (priority) {
       case "HIGH":
         return (
-          <div className="w-12 rounded-xl bg-red-200 text-center text-base font-medium">
+          <div className="w-12 rounded-xl bg-red-200 text-center text-base">
             High
           </div>
         );
       case "MEDIUM":
         return (
-          <div className="w-20 rounded-xl bg-amber-100 text-center text-base font-medium">
+          <div className="w-20 rounded-xl bg-amber-100 text-center text-base">
             Medium
           </div>
         );
       case "LOW":
         return (
-          <div className="w-12 rounded-xl bg-green-100 text-center text-base font-medium">
+          <div className="w-12 rounded-xl bg-green-100 text-center text-base">
             Low
           </div>
         );
@@ -98,15 +94,11 @@ export default async function ProjectPage({ params }: { params: paramsType }) {
               <TableBody>
                 {project?.tasks.map((task) => (
                   <TableRow key={task.id}>
-                    <TableCell className="text-lg font-medium">
-                      {task.name}
-                    </TableCell>
-                    <TableCell className="max-w-8 truncate text-lg">
+                    <TableCell className="font-medium ">{task.name}</TableCell>
+                    <TableCell className="max-w-8 truncate">
                       {task.notes}
                     </TableCell>
-                    <TableCell className="text-lg">
-                      {renderStatusTag(task.status)}
-                    </TableCell>
+                    <TableCell>{renderStatusTag(task.status)}</TableCell>
                     <TableCell>{renderPriorityTag(task.priority!)}</TableCell>
                     <TableCell>{task.due?.toLocaleDateString()}</TableCell>
                   </TableRow>
