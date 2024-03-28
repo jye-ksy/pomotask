@@ -6,7 +6,7 @@ export default async function Page() {
   const tasks = await api.task.getAllUserTasks.query();
 
   return (
-    <div className="w-full flex-col ">
+    <div className="w-full flex-col  ">
       <Dashboard projects={projects} tasks={tasks} />
     </div>
   );
