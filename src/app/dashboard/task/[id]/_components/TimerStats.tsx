@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { AlarmClockCheckIcon, AppleIcon } from "lucide-react";
-import { formatTime } from "~/lib/utils";
+import { convertSecondsToHMS, formatTime } from "~/lib/utils";
 import { useContext } from "react";
 import { PomodoroContext } from "../_context/PomodoroContext";
 export default function TimerStats() {
@@ -33,7 +33,9 @@ export default function TimerStats() {
         <CardContent>
           <div className="flex items-end">
             <span className="text-4xl font-bold">
-              {formatTime(pomodoro.totalFocusTime + pomodoro.totalRestTime)}
+              {convertSecondsToHMS(
+                pomodoro.totalFocusTime + pomodoro.totalRestTime,
+              )}
             </span>
           </div>
         </CardContent>
