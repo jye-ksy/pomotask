@@ -2,15 +2,13 @@ import { Card } from "~/components/ui/card";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
 import { api } from "~/trpc/server";
-
+import { convertSecondsToHMS } from "~/lib/utils";
 type paramsType = {
   projectid: string;
 };
@@ -19,7 +17,7 @@ export default async function ProjectPage({ params }: { params: paramsType }) {
   const { projectid } = params;
 
   const project = await api.project.getProjectById.query({ id: projectid });
-
+  console.log(project?.tasks);
   const renderStatusTag = (
     status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE",
   ) => {
@@ -82,13 +80,19 @@ export default async function ProjectPage({ params }: { params: paramsType }) {
         <div className="w-full max-w-7xl">
           <Card>
             <Table>
-              <TableHeader className="">
+              <TableHeader>
                 <TableRow>
                   <TableHead>Task</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Priority</TableHead>
-                  <TableHead>Due Date</TableHead>
+                  <TableHead className="text-right">Due Date</TableHead>
+                  <TableHead className="min-w-28 text-right">
+                    Total Time
+                  </TableHead>
+                  <TableHead className="max-w-24 text-right">
+                    Pomodoros
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -100,7 +104,22 @@ export default async function ProjectPage({ params }: { params: paramsType }) {
                     </TableCell>
                     <TableCell>{renderStatusTag(task.status)}</TableCell>
                     <TableCell>{renderPriorityTag(task.priority!)}</TableCell>
-                    <TableCell>{task.due?.toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      {task.due?.toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {task.Pomodoro
+                        ? convertSecondsToHMS(
+                            task.Pomodoro?.totalFocusTime +
+                              task.Pomodoro?.totalRestTime,
+                          )
+                        : null}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {task.Pomodoro?.pomodorosCompleted !== 0
+                        ? task.Pomodoro?.pomodorosCompleted
+                        : null}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
