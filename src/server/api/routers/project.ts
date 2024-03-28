@@ -86,7 +86,17 @@ export const projectRouter = createTRPCRouter({
           id: input.id,
         },
         include: {
-          tasks: true,
+          tasks: {
+            include: {
+              Pomodoro: {
+                select: {
+                  totalFocusTime: true,
+                  totalRestTime: true,
+                  pomodorosCompleted: true,
+                },
+              },
+            },
+          },
         },
       });
     }),
