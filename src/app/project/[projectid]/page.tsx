@@ -1,129 +1,121 @@
-'use client';
-
-import { useState } from "react";
-import { api } from "~/trpc/react"
-import { useRouter } from 'next/router';
+import { CheckCircleIcon, CircleIcon, TimerIcon } from "lucide-react";
+import { Card } from "~/components/ui/card";
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-  } from "../../../components/ui/collapsible";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "../../../components/ui/table";
-import { ArrowRight, ArrowDown} from 'lucide-react';
-
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+import { api } from "~/trpc/server";
 
 type paramsType = {
-    projectid: string;
-}
+  projectid: string;
+};
 
-const sampleData = [
-    {
-        task_name: 'Task 1',
-        sub_tasks: [
-            {
-                sub_task_name: "Subtask #1",
-                status: 'Not Started',
-                assignee: "User 1",
-                priority: "Medium",
-                notes: "Do something",                
-            },
-            {
-                sub_task_name: "Subtask #2",
-                status: 'Not Started',
-                assignee: "User 1",
-                priority: "Low",
-                notes: "Breh",                
-            }
-        ]
-    },
-    {
-        task_name: 'Task 2',
-        sub_tasks: [
-            {
-                sub_task_name: 'Task 2',
-                status: 'Not Started',
-                assignee: "User 2",
-                priority: "Low",
-                notes: ""
-            }
-        ]
+export default async function ProjectPage({ params }: { params: paramsType }) {
+  const { projectid } = params;
+
+  const project = await api.project.getProjectById.query({ id: projectid });
+
+  const renderStatusTag = (
+    status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE",
+  ) => {
+    switch (status) {
+      case "NOT_STARTED":
+        return (
+          <div className="flex text-lg">
+            <CircleIcon className="mr-4 mt-[6px] h-[18px] w-[18px] text-muted-foreground" />
+            Not Started
+          </div>
+        );
+      case "IN_PROGRESS":
+        return (
+          <div className="flex text-lg">
+            <TimerIcon className="mr-4 mt-1 h-[22px] w-[22px] text-muted-foreground" />
+            In Progress
+          </div>
+        );
+      case "COMPLETE":
+        return (
+          <div className="flex text-lg">
+            <CheckCircleIcon className="mr-4 mt-[6px] h-[19px] w-[19px] text-muted-foreground" />
+            Completed
+          </div>
+        );
     }
-]
+  };
 
-
-export default function ProjectPage({ params }: { params: paramsType }) {
-    const { projectid } = params;
-    const [isTabOpen, setIsTabOpen] = useState<string | null>(null)
-    const project = api.project.getProjectById.useQuery({id: projectid});
-
-    if (!project.data) {
-        // Handle loading state or null data, e.g., show a loading spinner or a message
-        return <div>Loading...</div>;
+  const renderPriorityTag = (priority: "LOW" | "MEDIUM" | "HIGH") => {
+    switch (priority) {
+      case "HIGH":
+        return (
+          <div className="w-12 rounded-xl bg-red-200 text-center text-base font-medium">
+            High
+          </div>
+        );
+      case "MEDIUM":
+        return (
+          <div className="w-20 rounded-xl bg-amber-100 text-center text-base font-medium">
+            Medium
+          </div>
+        );
+      case "LOW":
+        return (
+          <div className="w-12 rounded-xl bg-green-100 text-center text-base font-medium">
+            Low
+          </div>
+        );
     }
+  };
 
-    const { id, name} = project.data
-
-    const handleOpenChange = (taskName: string) => {
-        if (isTabOpen === taskName) {
-            setIsTabOpen(null); // Close if it's already open
-        } else {
-            setIsTabOpen(taskName); // Open the clicked one
-        }
-    };
-
-    return <div className="container py-16">
-        <h1 className="font-bold text-xl mb-4">{name}</h1>
-        <div className="container">
-            {sampleData.map((task, index) => {
-                return (
-                    <Collapsible
-                    key={index}
-                    open={isTabOpen === task.task_name}
-                    onOpenChange={() => handleOpenChange(task.task_name)}
-                    >
-                    <CollapsibleTrigger className="flex gap-2 items-center">
-                        {isTabOpen === task.task_name ? <ArrowDown size={16}/>: <ArrowRight size={16}/>}
-                        {task.task_name}
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                            {/* START OF INNER SUB TASKS 
-                            --------------------------------------------------------------------------------
-                            */}
-                            <Table className="">
-                                <TableHeader className="">
-                                    <TableRow className="">
-                                        <TableHead className="min-w-[250px] w-[400px]">Task Name</TableHead>
-                                        <TableHead className="w-[100px]">Status</TableHead>
-                                        <TableHead className="w-[100px]">Assignee</TableHead>
-                                        <TableHead className="w-[100px] text-middle">Priority</TableHead>
-                                        <TableHead className="w-[100px] text-middle">Notes</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {task.sub_tasks.map(subtask => {
-                                        return (
-                                            <TableRow className="">
-                                                <TableCell className="font-medium">{subtask.sub_task_name}</TableCell>
-                                                <TableCell>{subtask.status}</TableCell>
-                                                <TableCell>{subtask.assignee}</TableCell>
-                                                <TableCell className="">{subtask.priority}</TableCell>
-                                                <TableCell className="">{subtask.notes}</TableCell>
-                                            </TableRow>
-                                        )
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </CollapsibleContent>
-                    </Collapsible> 
-                )
-            })}
+  return (
+    <div className="w-full flex-col">
+      <div className="mx-8 flex flex-col items-center lg:mx-14">
+        <div className="mb-12 flex w-full max-w-7xl flex-col items-start justify-center md:justify-start">
+          <h1 className="mb-2 mt-12 flex justify-center text-3xl font-bold">
+            {project?.name}
+          </h1>
+          <span className="text-lg font-medium text-muted-foreground">
+            Here&apos;s a list of your tasks.
+          </span>
         </div>
+        <div className="w-full max-w-7xl">
+          <Card>
+            <Table>
+              <TableHeader className="">
+                <TableRow>
+                  <TableHead>Task</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Due Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {project?.tasks.map((task) => (
+                  <TableRow key={task.id}>
+                    <TableCell className="text-lg font-medium">
+                      {task.name}
+                    </TableCell>
+                    <TableCell className="max-w-8 truncate text-lg">
+                      {task.notes}
+                    </TableCell>
+                    <TableCell className="text-lg">
+                      {renderStatusTag(task.status)}
+                    </TableCell>
+                    <TableCell>{renderPriorityTag(task.priority!)}</TableCell>
+                    <TableCell>{task.due?.toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </div>
+      </div>
     </div>
+  );
 }
